@@ -352,7 +352,7 @@ zea_load_adblock(void)
 	gchar *buf = NULL;
 	gsize length, term;
 
-	path = g_strdup_printf("%s/zea/adblock.black", g_get_user_config_dir());
+	path = g_build_filename(g_get_user_config_dir(), "zea", "adblock.black", NULL);
 	channel = g_io_channel_new_file(path, "r", &err);
 	if (channel != NULL)
 	{
