@@ -39,6 +39,7 @@ static void zea_setup_cooperation(void);
 static void zea_scroll(GtkAdjustment *, gint, gdouble);
 static void zea_title_changed(GObject *, GParamSpec *, gpointer);
 static void zea_uri_changed(GObject *, GParamSpec *, gpointer);
+static void zea_usage(void);
 static void zea_web_view_hover(WebKitWebView *, gchar *, gchar *, gpointer);
 static gboolean zea_web_view_key(GtkWidget *, GdkEvent *, gpointer);
 
@@ -407,6 +408,13 @@ zea_uri_changed(GObject *obj, GParamSpec *pspec, gpointer data)
 	gtk_entry_set_text(GTK_ENTRY(c->location), (t == NULL ? "zea" : t));
 }
 
+void
+zea_usage(void)
+{
+	fprintf(stderr, "Usage: zea [OPTIONS] <URI>\n");
+	exit(EXIT_FAILURE);
+}
+
 Window
 zea_launch_tabbed(void)
 {
@@ -614,14 +622,13 @@ main(int argc, char **argv)
 			case 'T':
 				launch_tabbed = FALSE;
 				break;
+			default:
+				zea_usage();
 		}
 	}
 
 	if (optind >= argc)
-	{
-		fprintf(stderr, "Usage: zea [OPTIONS] <URI>\n");
-		exit(EXIT_FAILURE);
-	}
+		zea_usage();
 
 	zea_load_adblock();
 	zea_setup_cooperation();
