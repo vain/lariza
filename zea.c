@@ -23,6 +23,7 @@ static gboolean zea_do_download(WebKitWebView *, WebKitDownload *, gpointer);
 static gboolean zea_download_request(WebKitWebView *, WebKitWebFrame *,
                                      WebKitNetworkRequest *, gchar *,
                                      WebKitWebPolicyDecision *, gpointer);
+static Window zea_launch_tabbed(void);
 static void zea_load_adblock(void);
 static void zea_load_status_changed(GObject *obj, GParamSpec *pspec,
                                     gpointer data);
@@ -52,6 +53,7 @@ static GSList *adblock_patterns = NULL;
 static gboolean cooperative_instances = TRUE;
 static int cooperative_pipe_fp = 0;
 static gboolean alone = TRUE;
+static gboolean launch_tabbed = TRUE;
 
 
 struct Client
@@ -405,6 +407,38 @@ zea_uri_changed(GObject *obj, GParamSpec *pspec, gpointer data)
 	gtk_entry_set_text(GTK_ENTRY(c->location), (t == NULL ? "zea" : t));
 }
 
+Window
+zea_launch_tabbed(void)
+{
+	gint tabbed_stdout;
+	GIOChannel *tabbed_stdout_channel;
+	GError *err = NULL;
+	gchar *output = NULL;
+	char *argv[] = { "tabbed", "-c", "-d", NULL };
+
+	if (!g_spawn_async_with_pipes(NULL, argv, NULL, G_SPAWN_SEARCH_PATH, NULL,
+	                              NULL, NULL, NULL, &tabbed_stdout, NULL,
+	                              &err))
+	{
+		fprintf(stderr, "zea: Could not launch tabbed: %s\n", err->message);
+		g_error_free(err);
+		return 0;
+	}
+
+	tabbed_stdout_channel = g_io_channel_unix_new(tabbed_stdout);
+	g_io_channel_read_line(tabbed_stdout_channel, &output, NULL, NULL, NULL);
+	if (output == NULL)
+	{
+		fprintf(stderr, "zea: Could not read XID from tabbed\n");
+		return 0;
+	}
+
+	g_io_channel_shutdown(tabbed_stdout_channel, FALSE, NULL);
+
+	g_strstrip(output);
+	return strtol(output, NULL, 16);
+}
+
 void
 zea_load_adblock(void)
 {
@@ -561,7 +595,7 @@ main(int argc, char **argv)
 
 	gtk_init(&argc, &argv);
 
-	while ((opt = getopt(argc, argv, "z:e:Rs")) != -1)
+	while ((opt = getopt(argc, argv, "z:e:RsT")) != -1)
 	{
 		switch (opt)
 		{
@@ -577,6 +611,9 @@ main(int argc, char **argv)
 			case 's':
 				cooperative_instances = FALSE;
 				break;
+			case 'T':
+				launch_tabbed = FALSE;
+				break;
 		}
 	}
 
@@ -588,6 +625,9 @@ main(int argc, char **argv)
 
 	zea_load_adblock();
 	zea_setup_cooperation();
+
+	if (launch_tabbed && !(cooperative_instances && !alone))
+		embed = zea_launch_tabbed();
 
 	first_uri = g_strdup(argv[optind]);
 	for (i = optind; i < argc; i++)
