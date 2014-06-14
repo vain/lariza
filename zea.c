@@ -35,6 +35,7 @@ static Window embed = 0;
 static gint clients = 0;
 static gdouble global_zoom = 1.0;
 static gchar *search_text = NULL;
+static gchar *first_uri = NULL;
 
 
 struct Client
@@ -399,6 +400,12 @@ zea_web_view_key(GtkWidget *widget, GdkEvent *event, gpointer data)
 				zea_search(c, -1);
 				return TRUE;
 			}
+			else if (((GdkEventKey *)event)->keyval == GDK_KEY_g)
+			{
+				webkit_web_view_load_uri(WEBKIT_WEB_VIEW(c->web_view),
+				                         first_uri);
+				return TRUE;
+			}
 		}
 		else if (((GdkEventKey *)event)->keyval == GDK_KEY_Escape)
 		{
@@ -437,7 +444,9 @@ main(int argc, char **argv)
 		exit(EXIT_FAILURE);
 	}
 
-	zea_new_client(argv[optind]);
+	first_uri = g_strdup(argv[optind]);
+
+	zea_new_client(first_uri);
 	gtk_main();
 	exit(EXIT_SUCCESS);
 }
