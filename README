@@ -8,13 +8,13 @@ page).
 Features:
 
 	- A WebKit viewport
+	- An input box to change the current URL
 	- Global content zoom
 	- Pluggability into suckless' tabbed
 	- Support for Flash and Java
 
 Planned features:
 
-	- An input box to change the current URL
 	- vi-like shortcuts
 	- Adblock
 

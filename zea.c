@@ -3,6 +3,7 @@
 
 #include <gtk/gtk.h>
 #include <gdk/gdkx.h>
+#include <gdk/gdkkeysyms.h>
 #include <webkit/webkit.h>
 
 
@@ -14,12 +15,14 @@ static gboolean zea_do_download(WebKitWebView *, WebKitDownload *, gpointer);
 static gboolean zea_download_request(WebKitWebView *, WebKitWebFrame *,
                                      WebKitNetworkRequest *, gchar *,
                                      WebKitWebPolicyDecision *, gpointer);
+static gboolean zea_location_key(GtkWidget *, GdkEvent *, gpointer);
 static void zea_new_client(const gchar *uri);
 static gboolean zea_new_client_request(WebKitWebView *, WebKitWebFrame *,
                                        WebKitNetworkRequest *,
                                        WebKitWebNavigationAction *,
                                        WebKitWebPolicyDecision *, gpointer);
 static void zea_title_changed(GObject *, GParamSpec *, gpointer);
+static gboolean zea_web_view_key(GtkWidget *, GdkEvent *, gpointer);
 
 
 static Window embed = 0;
@@ -30,6 +33,8 @@ static double global_zoom = 1.0;
 struct Client
 {
 	GtkWidget *win;
+	GtkWidget *vbox;
+	GtkWidget *location;
 	GtkWidget *scroll;
 	GtkWidget *web_view;
 };
@@ -109,6 +114,27 @@ zea_download_request(WebKitWebView *web_view, WebKitWebFrame *frame,
 	return FALSE;
 }
 
+gboolean
+zea_location_key(GtkWidget *widget, GdkEvent *event, gpointer data)
+{
+	struct Client *c = (struct Client *)data;
+
+	(void)widget;
+
+	if (event->type == GDK_KEY_PRESS)
+	{
+		if (((GdkEventKey *)event)->keyval == GDK_KEY_Return)
+		{
+			gtk_widget_grab_focus(c->web_view);
+			webkit_web_view_load_uri(WEBKIT_WEB_VIEW(c->web_view),
+			                         gtk_entry_get_text(GTK_ENTRY(c->location)));
+			return TRUE;
+		}
+	}
+
+	return FALSE;
+}
+
 void
 zea_new_client(const gchar *uri)
 {
@@ -150,12 +176,24 @@ zea_new_client(const gchar *uri)
 	                 G_CALLBACK(zea_download_request), NULL);
 	g_signal_connect(G_OBJECT(c->web_view), "download-requested",
 	                 G_CALLBACK(zea_do_download), NULL);
+	g_signal_connect(G_OBJECT(c->web_view), "key-press-event",
+	                 G_CALLBACK(zea_web_view_key), c);
 
 	c->scroll = gtk_scrolled_window_new(NULL, NULL);
 
 	gtk_container_add(GTK_CONTAINER(c->scroll), c->web_view);
-	gtk_container_add(GTK_CONTAINER(c->win), c->scroll);
 
+	c->location = gtk_entry_new();
+	g_signal_connect(G_OBJECT(c->location), "key-press-event",
+	                 G_CALLBACK(zea_location_key), c);
+
+	c->vbox = gtk_vbox_new(FALSE, 0);
+	gtk_box_pack_start(GTK_BOX(c->vbox), c->location, FALSE, FALSE, 0);
+	gtk_container_add(GTK_CONTAINER(c->vbox), c->scroll);
+
+	gtk_container_add(GTK_CONTAINER(c->win), c->vbox);
+
+	gtk_widget_grab_focus(c->web_view);
 	gtk_widget_show_all(c->win);
 
 	webkit_web_view_load_uri(WEBKIT_WEB_VIEW(c->web_view), uri);
@@ -192,6 +230,28 @@ zea_title_changed(GObject *obj, GParamSpec *pspec, gpointer data)
 
 	t = webkit_web_view_get_title(view);
 	gtk_window_set_title(win, (t == NULL ? "zea" : t));
+}
+
+gboolean
+zea_web_view_key(GtkWidget *widget, GdkEvent *event, gpointer data)
+{
+	struct Client *c = (struct Client *)data;
+
+	(void)widget;
+
+	if (event->type == GDK_KEY_PRESS)
+	{
+		if (((GdkEventKey *)event)->state & GDK_MOD1_MASK)
+		{
+			if (((GdkEventKey *)event)->keyval == GDK_KEY_l)
+			{
+				gtk_widget_grab_focus(c->location);
+				return TRUE;
+			}
+		}
+	}
+
+	return FALSE;
 }
 
 int
