@@ -1,0 +1,36 @@
+sn - sonst nix
+==============
+
+This is a minimalistic web browser using Gtk3 and WebKit. "Sonst nix" is
+german and translates roughly to "nothing else". sn is simple and meant
+to stay simple.
+
+Features:
+
+	- A WebKit viewport
+	- Global content zoom
+
+Planned features:
+
+	- An input box to change the current URL
+	- vi-like shortcuts
+	- Adblock
+	- Pluggability into suckless' tabbed (preferred) or native tabs
+
+
+Why WebKit instead of WebKit2?
+==============================
+
+While WebKit2 has fancy process separation and all that stuff, it turned
+out to be pretty slow and clunky. Plus, ideally, sn will be plugged into
+suckless' tabbed -- so it wouldn't benefit from process separation
+anyway.
+
+
+Literature
+==========
+
+API references:
+
+	- http://webkitgtk.org/reference/webkitgtk/stable/index.html
+	- https://developer.gnome.org/gtk3/stable/index.html
