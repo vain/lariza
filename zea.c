@@ -22,6 +22,7 @@ static gboolean zea_new_client_request(WebKitWebView *, WebKitWebFrame *,
                                        WebKitWebNavigationAction *,
                                        WebKitWebPolicyDecision *, gpointer);
 static void zea_title_changed(GObject *, GParamSpec *, gpointer);
+static void zea_uri_changed(GObject *, GParamSpec *, gpointer);
 static gboolean zea_web_view_key(GtkWidget *, GdkEvent *, gpointer);
 
 
@@ -168,6 +169,8 @@ zea_new_client(const gchar *uri)
 	webkit_web_view_set_zoom_level(WEBKIT_WEB_VIEW(c->web_view), global_zoom);
 	g_signal_connect(G_OBJECT(c->web_view), "notify::title",
 	                 G_CALLBACK(zea_title_changed), c);
+	g_signal_connect(G_OBJECT(c->web_view), "notify::uri",
+	                 G_CALLBACK(zea_uri_changed), c);
 	g_signal_connect(G_OBJECT(c->web_view),
 	                 "new-window-policy-decision-requested",
 	                 G_CALLBACK(zea_new_client_request), NULL);
@@ -230,6 +233,19 @@ zea_title_changed(GObject *obj, GParamSpec *pspec, gpointer data)
 
 	t = webkit_web_view_get_title(WEBKIT_WEB_VIEW(c->web_view));
 	gtk_window_set_title(GTK_WINDOW(c->win), (t == NULL ? "zea" : t));
+}
+
+void
+zea_uri_changed(GObject *obj, GParamSpec *pspec, gpointer data)
+{
+	const gchar *t;
+	struct Client *c = (struct Client *)data;
+
+	(void)obj;
+	(void)pspec;
+
+	t = webkit_web_view_get_uri(WEBKIT_WEB_VIEW(c->web_view));
+	gtk_entry_set_text(GTK_ENTRY(c->location), (t == NULL ? "zea" : t));
 }
 
 gboolean
