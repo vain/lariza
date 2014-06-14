@@ -54,6 +54,9 @@ zea_destroy_client(GtkWidget *obj, gpointer data)
 	webkit_web_view_stop_loading(WEBKIT_WEB_VIEW(c->web_view));
 	gtk_widget_destroy(c->web_view);
 	gtk_widget_destroy(c->scroll);
+	gtk_widget_destroy(c->status);
+	gtk_widget_destroy(c->location);
+	gtk_widget_destroy(c->vbox);
 	gtk_widget_destroy(c->win);
 	free(c);
 
