@@ -23,13 +23,13 @@ static gboolean zea_new_client_request(WebKitWebView *, WebKitWebFrame *,
                                        WebKitWebPolicyDecision *, gpointer);
 static void zea_title_changed(GObject *, GParamSpec *, gpointer);
 static void zea_uri_changed(GObject *, GParamSpec *, gpointer);
-static void zea_scroll(GtkAdjustment *, int, gdouble);
+static void zea_scroll(GtkAdjustment *, gint, gdouble);
 static gboolean zea_web_view_key(GtkWidget *, GdkEvent *, gpointer);
 
 
 static Window embed = 0;
-static int clients = 0;
-static double global_zoom = 1.0;
+static gint clients = 0;
+static gdouble global_zoom = 1.0;
 
 
 struct Client
@@ -65,7 +65,7 @@ zea_do_download(WebKitWebView *web_view, WebKitDownload *download, gpointer data
 {
 	const gchar *uri;
 	char id[16] = "";
-	int ret;
+	gint ret;
 
 	(void)web_view;
 	(void)data;
@@ -250,7 +250,7 @@ zea_uri_changed(GObject *obj, GParamSpec *pspec, gpointer data)
 }
 
 void
-zea_scroll(GtkAdjustment *a, int step_type, gdouble factor)
+zea_scroll(GtkAdjustment *a, gint step_type, gdouble factor)
 {
 	gdouble new, lower, upper, step;
 	lower = gtk_adjustment_get_lower(a);
