@@ -421,7 +421,7 @@ zea_web_view_key(GtkWidget *widget, GdkEvent *event, gpointer data)
 int
 main(int argc, char **argv)
 {
-	int opt;
+	int opt, i;
 
 	gtk_init(&argc, &argv);
 
@@ -445,8 +445,8 @@ main(int argc, char **argv)
 	}
 
 	first_uri = g_strdup(argv[optind]);
-
-	zea_new_client(first_uri);
+	for (i = optind; i < argc; i++)
+		zea_new_client(argv[i]);
 	gtk_main();
 	exit(EXIT_SUCCESS);
 }
