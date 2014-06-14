@@ -9,17 +9,17 @@
 #define DOWNLOAD_DIR "/tmp/tmp"
 
 
-static void sn_destroy_client(GtkWidget *, gpointer);
-static gboolean sn_do_download(WebKitWebView *, WebKitDownload *, gpointer);
-static gboolean sn_download_request(WebKitWebView *, WebKitWebFrame *,
-                                    WebKitNetworkRequest *, gchar *,
-                                    WebKitWebPolicyDecision *, gpointer);
-static void sn_new_client(const gchar *uri);
-static gboolean sn_new_client_request(WebKitWebView *, WebKitWebFrame *,
-                                      WebKitNetworkRequest *,
-                                      WebKitWebNavigationAction *,
-                                      WebKitWebPolicyDecision *, gpointer);
-static void sn_title_changed(GObject *, GParamSpec *, gpointer);
+static void zea_destroy_client(GtkWidget *, gpointer);
+static gboolean zea_do_download(WebKitWebView *, WebKitDownload *, gpointer);
+static gboolean zea_download_request(WebKitWebView *, WebKitWebFrame *,
+                                     WebKitNetworkRequest *, gchar *,
+                                     WebKitWebPolicyDecision *, gpointer);
+static void zea_new_client(const gchar *uri);
+static gboolean zea_new_client_request(WebKitWebView *, WebKitWebFrame *,
+                                       WebKitNetworkRequest *,
+                                       WebKitWebNavigationAction *,
+                                       WebKitWebPolicyDecision *, gpointer);
+static void zea_title_changed(GObject *, GParamSpec *, gpointer);
 
 
 static Window embed = 0;
@@ -36,7 +36,7 @@ struct Client
 
 
 void
-sn_destroy_client(GtkWidget *obj, gpointer data)
+zea_destroy_client(GtkWidget *obj, gpointer data)
 {
 	struct Client *c = (struct Client *)data;
 
@@ -54,7 +54,7 @@ sn_destroy_client(GtkWidget *obj, gpointer data)
 }
 
 gboolean
-sn_do_download(WebKitWebView *web_view, WebKitDownload *download, gpointer data)
+zea_do_download(WebKitWebView *web_view, WebKitDownload *download, gpointer data)
 {
 	const gchar *uri;
 	char id[16] = "";
@@ -73,7 +73,7 @@ sn_do_download(WebKitWebView *web_view, WebKitDownload *download, gpointer data)
 		{
 			if (snprintf(id, 16, "%ld", embed) >= 16)
 			{
-				fprintf(stderr, "sn: id for xterm embed truncated!\n");
+				fprintf(stderr, "zea: id for xterm embed truncated!\n");
 				exit(EXIT_FAILURE);
 			}
 			ret = execlp("xterm", "xterm", "-hold", "-into", id, "-e", "wget",
@@ -82,7 +82,7 @@ sn_do_download(WebKitWebView *web_view, WebKitDownload *download, gpointer data)
 
 		if (ret == -1)
 		{
-			fprintf(stderr, "sn: exec'ing xterm for download");
+			fprintf(stderr, "zea: exec'ing xterm for download");
 			perror(" failed");
 			exit(EXIT_FAILURE);
 		}
@@ -92,10 +92,10 @@ sn_do_download(WebKitWebView *web_view, WebKitDownload *download, gpointer data)
 }
 
 gboolean
-sn_download_request(WebKitWebView *web_view, WebKitWebFrame *frame,
-                    WebKitNetworkRequest *request, gchar *mime_type,
-                    WebKitWebPolicyDecision *policy_decision,
-                    gpointer data)
+zea_download_request(WebKitWebView *web_view, WebKitWebFrame *frame,
+                     WebKitNetworkRequest *request, gchar *mime_type,
+                     WebKitWebPolicyDecision *policy_decision,
+                     gpointer data)
 {
 	(void)frame;
 	(void)request;
@@ -110,12 +110,12 @@ sn_download_request(WebKitWebView *web_view, WebKitWebFrame *frame,
 }
 
 void
-sn_new_client(const gchar *uri)
+zea_new_client(const gchar *uri)
 {
 	struct Client *c = malloc(sizeof(struct Client));
 	if (!c)
 	{
-		fprintf(stderr, "sn: fatal: malloc failed\n");
+		fprintf(stderr, "zea: fatal: malloc failed\n");
 		exit(EXIT_FAILURE);
 	}
 
@@ -128,27 +128,28 @@ sn_new_client(const gchar *uri)
 		c->win = gtk_plug_new(embed);
 	}
 
-	/* When using Gtk2, sn only shows a white area when run in suckless'
-	 * tabbed. It appears we need to set a default window size for this
-	 * to work. This is not needed when using Gtk3. */
+	/* When using Gtk2, zea only shows a white area when run in
+	 * suckless' tabbed. It appears we need to set a default window size
+	 * for this to work. This is not needed when using Gtk3. */
 	gtk_window_set_default_size(GTK_WINDOW(c->win), 1024, 768);
 
-	g_signal_connect(G_OBJECT(c->win), "destroy", G_CALLBACK(sn_destroy_client),
-	                 c);
-	gtk_window_set_title(GTK_WINDOW(c->win), "sn");
+	g_signal_connect(G_OBJECT(c->win), "destroy",
+	                 G_CALLBACK(zea_destroy_client), c);
+	gtk_window_set_title(GTK_WINDOW(c->win), "zea");
 
 	c->web_view = webkit_web_view_new();
 	webkit_web_view_set_full_content_zoom(WEBKIT_WEB_VIEW(c->web_view), TRUE);
 	webkit_web_view_set_zoom_level(WEBKIT_WEB_VIEW(c->web_view), global_zoom);
 	g_signal_connect(G_OBJECT(c->web_view), "notify::title",
-	                 G_CALLBACK(sn_title_changed), c->win);
+	                 G_CALLBACK(zea_title_changed), c->win);
 	g_signal_connect(G_OBJECT(c->web_view),
 	                 "new-window-policy-decision-requested",
-	                 G_CALLBACK(sn_new_client_request), NULL);
-	g_signal_connect(G_OBJECT(c->web_view), "mime-type-policy-decision-requested",
-	                 G_CALLBACK(sn_download_request), NULL);
+	                 G_CALLBACK(zea_new_client_request), NULL);
+	g_signal_connect(G_OBJECT(c->web_view),
+	                 "mime-type-policy-decision-requested",
+	                 G_CALLBACK(zea_download_request), NULL);
 	g_signal_connect(G_OBJECT(c->web_view), "download-requested",
-	                 G_CALLBACK(sn_do_download), NULL);
+	                 G_CALLBACK(zea_do_download), NULL);
 
 	c->scroll = gtk_scrolled_window_new(NULL, NULL);
 
@@ -163,11 +164,11 @@ sn_new_client(const gchar *uri)
 }
 
 gboolean
-sn_new_client_request(WebKitWebView *web_view, WebKitWebFrame *frame,
-                      WebKitNetworkRequest *request,
-                      WebKitWebNavigationAction *navigation_action,
-                      WebKitWebPolicyDecision *policy_decision,
-                      gpointer user_data)
+zea_new_client_request(WebKitWebView *web_view, WebKitWebFrame *frame,
+                       WebKitNetworkRequest *request,
+                       WebKitWebNavigationAction *navigation_action,
+                       WebKitWebPolicyDecision *policy_decision,
+                       gpointer user_data)
 {
 	(void)web_view;
 	(void)frame;
@@ -175,13 +176,13 @@ sn_new_client_request(WebKitWebView *web_view, WebKitWebFrame *frame,
 	(void)user_data;
 
 	webkit_web_policy_decision_ignore(policy_decision);
-	sn_new_client(webkit_network_request_get_uri(request));
+	zea_new_client(webkit_network_request_get_uri(request));
 
 	return TRUE;
 }
 
 void
-sn_title_changed(GObject *obj, GParamSpec *pspec, gpointer data)
+zea_title_changed(GObject *obj, GParamSpec *pspec, gpointer data)
 {
 	const gchar *t;
 	WebKitWebView *view = WEBKIT_WEB_VIEW(obj);
@@ -190,7 +191,7 @@ sn_title_changed(GObject *obj, GParamSpec *pspec, gpointer data)
 	(void)pspec;
 
 	t = webkit_web_view_get_title(view);
-	gtk_window_set_title(win, (t == NULL ? "sn" : t));
+	gtk_window_set_title(win, (t == NULL ? "zea" : t));
 }
 
 int
@@ -215,11 +216,11 @@ main(int argc, char **argv)
 
 	if (optind >= argc)
 	{
-		fprintf(stderr, "Usage: sn [OPTIONS] <URI>\n");
+		fprintf(stderr, "Usage: zea [OPTIONS] <URI>\n");
 		exit(EXIT_FAILURE);
 	}
 
-	sn_new_client(argv[optind]);
+	zea_new_client(argv[optind]);
 	gtk_main();
 	exit(EXIT_SUCCESS);
 }

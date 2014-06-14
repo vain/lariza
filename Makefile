@@ -1,9 +1,9 @@
 CFLAGS += -Wall -Wextra -O3
 
-sn: sn.c
+zea: zea.c
 	$(CC) $(CFLAGS) $(LDFLAGS) \
 		-o $@ $< \
 		`pkg-config --cflags --libs gtk+-2.0 webkit-1.0`
 
 clean:
-	rm -f sn
+	rm -f zea
