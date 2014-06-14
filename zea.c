@@ -15,6 +15,8 @@ static gboolean zea_do_download(WebKitWebView *, WebKitDownload *, gpointer);
 static gboolean zea_download_request(WebKitWebView *, WebKitWebFrame *,
                                      WebKitNetworkRequest *, gchar *,
                                      WebKitWebPolicyDecision *, gpointer);
+static void zea_load_status_changed(GObject *obj, GParamSpec *pspec,
+                                    gpointer data);
 static gboolean zea_location_key(GtkWidget *, GdkEvent *, gpointer);
 static void zea_new_client(const gchar *uri);
 static gboolean zea_new_client_request(WebKitWebView *, WebKitWebFrame *,
@@ -177,6 +179,8 @@ zea_new_client(const gchar *uri)
 	                 G_CALLBACK(zea_title_changed), c);
 	g_signal_connect(G_OBJECT(c->web_view), "notify::uri",
 	                 G_CALLBACK(zea_uri_changed), c);
+	g_signal_connect(G_OBJECT(c->web_view), "notify::load-status",
+	                 G_CALLBACK(zea_load_status_changed), c);
 	g_signal_connect(G_OBJECT(c->web_view),
 	                 "new-window-policy-decision-requested",
 	                 G_CALLBACK(zea_new_client_request), NULL);
@@ -273,6 +277,27 @@ zea_uri_changed(GObject *obj, GParamSpec *pspec, gpointer data)
 
 	t = webkit_web_view_get_uri(WEBKIT_WEB_VIEW(c->web_view));
 	gtk_entry_set_text(GTK_ENTRY(c->location), (t == NULL ? "zea" : t));
+}
+
+void
+zea_load_status_changed(GObject *obj, GParamSpec *pspec, gpointer data)
+{
+	struct Client *c = (struct Client *)data;
+
+	(void)obj;
+	(void)pspec;
+
+	if (webkit_web_view_get_load_status(WEBKIT_WEB_VIEW(c->web_view))
+	    == WEBKIT_LOAD_FINISHED)
+	{
+		gtk_statusbar_pop(GTK_STATUSBAR(c->status), 1);
+		gtk_statusbar_push(GTK_STATUSBAR(c->status), 1, "Finished.");
+	}
+	else
+	{
+		gtk_statusbar_pop(GTK_STATUSBAR(c->status), 1);
+		gtk_statusbar_push(GTK_STATUSBAR(c->status), 1, "Loading...");
+	}
 }
 
 void
