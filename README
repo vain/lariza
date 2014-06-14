@@ -16,7 +16,9 @@ Features:
 
 Planned features:
 
+	- Searching the current page for a word
 	- Adblock
+	- Keyword based searching (opening "wi foo" will search wikipedia)
 
 
 Using zea with tabbed
