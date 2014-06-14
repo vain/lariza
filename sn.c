@@ -2,6 +2,7 @@
 #include <stdlib.h>
 
 #include <gtk/gtk.h>
+#include <gtk/gtkx.h>
 #include <webkit/webkit.h>
 
 
@@ -21,6 +22,7 @@ static gboolean sn_new_client_request(WebKitWebView *, WebKitWebFrame *,
 static void sn_title_changed(GObject *, GParamSpec *, gpointer);
 
 
+static Window embed = 0;
 static int clients = 0;
 static double global_zoom = 1.0;
 
@@ -102,7 +104,15 @@ sn_new_client(const gchar *uri)
 		exit(EXIT_FAILURE);
 	}
 
-	c->win = gtk_window_new(GTK_WINDOW_TOPLEVEL);
+	if (embed == 0)
+	{
+		c->win = gtk_window_new(GTK_WINDOW_TOPLEVEL);
+	}
+	else
+	{
+		c->win = gtk_plug_new(embed);
+	}
+
 	g_signal_connect(G_OBJECT(c->win), "destroy", G_CALLBACK(sn_destroy_client),
 	                 c);
 	gtk_window_set_has_resize_grip(GTK_WINDOW(c->win), FALSE);
@@ -171,12 +181,15 @@ main(int argc, char **argv)
 
 	gtk_init(&argc, &argv);
 
-	while ((opt = getopt(argc, argv, "z:")) != -1)
+	while ((opt = getopt(argc, argv, "z:e:")) != -1)
 	{
 		switch (opt)
 		{
 			case 'z':
 				global_zoom = atof(optarg);
+				break;
+			case 'e':
+				embed = atol(optarg);
 				break;
 		}
 	}

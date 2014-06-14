@@ -9,13 +9,25 @@ Features:
 
 	- A WebKit viewport
 	- Global content zoom
+	- Pluggability into suckless' tabbed
 
 Planned features:
 
 	- An input box to change the current URL
 	- vi-like shortcuts
 	- Adblock
-	- Pluggability into suckless' tabbed (preferred) or native tabs
+
+
+Using sn with tabbed
+====================
+
+The order of arguments for sn doesn't matter. This means you can run it
+like this:
+
+	$ tabbed -c ./sn file:///home/hans/bookmarks.html -z 0.8 -e
+
+Each new tab will then show your bookmarks and is scaled by a factor of
+0.8.
 
 
 Literature
