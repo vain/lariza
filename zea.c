@@ -253,8 +253,9 @@ zea_new_client(const gchar *uri)
 	                 G_CALLBACK(zea_location_key), c);
 
 	c->status = gtk_statusbar_new();
+	gtk_statusbar_set_has_resize_grip(GTK_STATUSBAR(c->status), FALSE);
 
-	c->vbox = gtk_vbox_new(FALSE, 0);
+	c->vbox = gtk_vbox_new(FALSE, 2);
 	gtk_box_pack_start(GTK_BOX(c->vbox), c->location, FALSE, FALSE, 0);
 	gtk_container_add(GTK_CONTAINER(c->vbox), c->scroll);
 	gtk_box_pack_end(GTK_BOX(c->vbox), c->status, FALSE, FALSE, 0);
