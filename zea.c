@@ -413,13 +413,12 @@ zea_load_adblock(void)
 	GIOChannel *channel = NULL;
 	gchar *path = NULL;
 	gchar *buf = NULL;
-	gsize length, term;
 
 	path = g_build_filename(g_get_user_config_dir(), "zea", "adblock.black", NULL);
 	channel = g_io_channel_new_file(path, "r", &err);
 	if (channel != NULL)
 	{
-		while (g_io_channel_read_line(channel, &buf, &length, &term, &err)
+		while (g_io_channel_read_line(channel, &buf, NULL, NULL, NULL)
 		       == G_IO_STATUS_NORMAL)
 		{
 			g_strstrip(buf);
@@ -436,9 +435,6 @@ zea_load_adblock(void)
 
 			g_free(buf);
 		}
-
-		if (err != NULL)
-			g_free(err);
 	}
 	g_free(path);
 }
