@@ -23,6 +23,7 @@ static gboolean zea_new_client_request(WebKitWebView *, WebKitWebFrame *,
                                        WebKitWebPolicyDecision *, gpointer);
 static void zea_title_changed(GObject *, GParamSpec *, gpointer);
 static void zea_uri_changed(GObject *, GParamSpec *, gpointer);
+static void zea_scroll(GtkAdjustment *, int, gdouble);
 static gboolean zea_web_view_key(GtkWidget *, GdkEvent *, gpointer);
 
 
@@ -248,6 +249,22 @@ zea_uri_changed(GObject *obj, GParamSpec *pspec, gpointer data)
 	gtk_entry_set_text(GTK_ENTRY(c->location), (t == NULL ? "zea" : t));
 }
 
+void
+zea_scroll(GtkAdjustment *a, int step_type, gdouble factor)
+{
+	gdouble new, lower, upper, step;
+	lower = gtk_adjustment_get_lower(a);
+	upper = gtk_adjustment_get_upper(a) - gtk_adjustment_get_page_size(a) + lower;
+	if (step_type == 0)
+		step = gtk_adjustment_get_step_increment(a);
+	else
+		step = gtk_adjustment_get_page_increment(a);
+	new = gtk_adjustment_get_value(a) + factor * step;
+	new = new < lower ? lower : new;
+	new = new > upper ? upper : new;
+	gtk_adjustment_set_value(a, new);
+}
+
 gboolean
 zea_web_view_key(GtkWidget *widget, GdkEvent *event, gpointer data)
 {
@@ -257,11 +274,47 @@ zea_web_view_key(GtkWidget *widget, GdkEvent *event, gpointer data)
 
 	if (event->type == GDK_KEY_PRESS)
 	{
-		if (((GdkEventKey *)event)->state & GDK_MOD1_MASK)
+		if (((GdkEventKey *)event)->state & GDK_CONTROL_MASK)
 		{
-			if (((GdkEventKey *)event)->keyval == GDK_KEY_l)
+			if (((GdkEventKey *)event)->keyval == GDK_KEY_o)
 			{
 				gtk_widget_grab_focus(c->location);
+				return TRUE;
+			}
+			else if (((GdkEventKey *)event)->keyval == GDK_KEY_h)
+			{
+				zea_scroll(gtk_scrolled_window_get_hadjustment(
+				           GTK_SCROLLED_WINDOW(c->scroll)), 0, -1);
+				return TRUE;
+			}
+			else if (((GdkEventKey *)event)->keyval == GDK_KEY_j)
+			{
+				zea_scroll(gtk_scrolled_window_get_vadjustment(
+				           GTK_SCROLLED_WINDOW(c->scroll)), 0, 1);
+				return TRUE;
+			}
+			else if (((GdkEventKey *)event)->keyval == GDK_KEY_k)
+			{
+				zea_scroll(gtk_scrolled_window_get_vadjustment(
+				           GTK_SCROLLED_WINDOW(c->scroll)), 0, -1);
+				return TRUE;
+			}
+			else if (((GdkEventKey *)event)->keyval == GDK_KEY_l)
+			{
+				zea_scroll(gtk_scrolled_window_get_hadjustment(
+				           GTK_SCROLLED_WINDOW(c->scroll)), 0, 1);
+				return TRUE;
+			}
+			else if (((GdkEventKey *)event)->keyval == GDK_KEY_f)
+			{
+				zea_scroll(gtk_scrolled_window_get_vadjustment(
+				           GTK_SCROLLED_WINDOW(c->scroll)), 1, 0.5);
+				return TRUE;
+			}
+			if (((GdkEventKey *)event)->keyval == GDK_KEY_b)
+			{
+				zea_scroll(gtk_scrolled_window_get_vadjustment(
+				           GTK_SCROLLED_WINDOW(c->scroll)), 1, -0.5);
 				return TRUE;
 			}
 		}

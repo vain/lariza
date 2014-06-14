@@ -11,11 +11,11 @@ Features:
 	- An input box to change the current URL
 	- Global content zoom
 	- Pluggability into suckless' tabbed
+	- vi-like scrolling (modified by CTRL)
 	- Support for Flash and Java
 
 Planned features:
 
-	- vi-like shortcuts
 	- Adblock
 
 
