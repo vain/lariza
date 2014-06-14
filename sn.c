@@ -21,8 +21,8 @@ static gboolean sn_new_client_request(WebKitWebView *, WebKitWebFrame *,
 static void sn_title_changed(GObject *, GParamSpec *, gpointer);
 
 
-int clients = 0;
-double global_zoom = 1.0;
+static int clients = 0;
+static double global_zoom = 1.0;
 
 
 struct Client
