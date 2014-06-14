@@ -167,7 +167,7 @@ zea_new_client(const gchar *uri)
 	webkit_web_view_set_full_content_zoom(WEBKIT_WEB_VIEW(c->web_view), TRUE);
 	webkit_web_view_set_zoom_level(WEBKIT_WEB_VIEW(c->web_view), global_zoom);
 	g_signal_connect(G_OBJECT(c->web_view), "notify::title",
-	                 G_CALLBACK(zea_title_changed), c->win);
+	                 G_CALLBACK(zea_title_changed), c);
 	g_signal_connect(G_OBJECT(c->web_view),
 	                 "new-window-policy-decision-requested",
 	                 G_CALLBACK(zea_new_client_request), NULL);
@@ -223,13 +223,13 @@ void
 zea_title_changed(GObject *obj, GParamSpec *pspec, gpointer data)
 {
 	const gchar *t;
-	WebKitWebView *view = WEBKIT_WEB_VIEW(obj);
-	GtkWindow *win = GTK_WINDOW(data);
+	struct Client *c = (struct Client *)data;
 
+	(void)obj;
 	(void)pspec;
 
-	t = webkit_web_view_get_title(view);
-	gtk_window_set_title(win, (t == NULL ? "zea" : t));
+	t = webkit_web_view_get_title(WEBKIT_WEB_VIEW(c->web_view));
+	gtk_window_set_title(GTK_WINDOW(c->win), (t == NULL ? "zea" : t));
 }
 
 gboolean
