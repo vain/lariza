@@ -383,18 +383,18 @@ zea_web_view_key(GtkWidget *widget, GdkEvent *event, gpointer data)
 				           GTK_SCROLLED_WINDOW(c->scroll)), 1, 0.5);
 				return TRUE;
 			}
-			if (((GdkEventKey *)event)->keyval == GDK_KEY_b)
+			else if (((GdkEventKey *)event)->keyval == GDK_KEY_b)
 			{
 				zea_scroll(gtk_scrolled_window_get_vadjustment(
 				           GTK_SCROLLED_WINDOW(c->scroll)), 1, -0.5);
 				return TRUE;
 			}
-			if (((GdkEventKey *)event)->keyval == GDK_KEY_n)
+			else if (((GdkEventKey *)event)->keyval == GDK_KEY_n)
 			{
 				zea_search(c, 1);
 				return TRUE;
 			}
-			if (((GdkEventKey *)event)->keyval == GDK_KEY_p)
+			else if (((GdkEventKey *)event)->keyval == GDK_KEY_p)
 			{
 				zea_search(c, -1);
 				return TRUE;
