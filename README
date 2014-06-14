@@ -1,9 +1,9 @@
 zea - zeig's einfach an
 =======================
 
-zea is a minimalistic web browser using Gtk2 and WebKit. "Zeig's einfach
-an" is german and translates roughly to "just show it" (the damn web
-page).
+zea is a minimalistic web browser using Gtk2, GLib and WebKit. "Zeig's
+einfach an" is german and translates roughly to "just show it" (the damn
+web page).
 
 Features:
 
@@ -13,11 +13,11 @@ Features:
 	- Pluggability into suckless' tabbed
 	- vi-like scrolling (modified by CTRL)
 	- Searching the current page for a word
+	- Adblock
 	- Support for Flash and Java
 
 Planned features:
 
-	- Adblock
 	- Keyword based searching (opening "wi foo" will search wikipedia)
 
 
@@ -33,6 +33,18 @@ Each new tab will then show your bookmarks and is scaled by a factor of
 0.8.
 
 
+Adblock
+=======
+
+zea has built-in adblock functionality. In each line of
+
+	~/.config/zea/adblock.black
+
+you can store a regular expression. These expressions match
+case-insensitive and partially, i.e. ".*foo.*" is the same as ".*FOO.*"
+and you can use anchors like "^https?://...".
+
+
 Literature
 ==========
 
@@ -40,3 +52,9 @@ API references:
 
 	- http://webkitgtk.org/reference/webkitgtk/stable/index.html
 	- https://developer.gnome.org/gtk2/stable/index.html
+	- https://developer.gnome.org/glib/stable/index.html
+
+Regular expressions supported by GRegex, you can use these in your
+adblock patterns:
+
+	- https://developer.gnome.org/glib/stable/glib-regex-syntax.html

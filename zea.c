@@ -17,6 +17,7 @@ static gboolean zea_do_download(WebKitWebView *, WebKitDownload *, gpointer);
 static gboolean zea_download_request(WebKitWebView *, WebKitWebFrame *,
                                      WebKitNetworkRequest *, gchar *,
                                      WebKitWebPolicyDecision *, gpointer);
+static void zea_load_adblock(void);
 static void zea_load_status_changed(GObject *obj, GParamSpec *pspec,
                                     gpointer data);
 static gboolean zea_location_key(GtkWidget *, GdkEvent *, gpointer);
@@ -39,6 +40,7 @@ static gdouble global_zoom = 1.0;
 static gchar *search_text = NULL;
 static gchar *first_uri = NULL;
 static gboolean show_all_requests = FALSE;
+static GSList *adblock_patterns = NULL;
 
 
 struct Client
@@ -57,17 +59,30 @@ zea_adblock(WebKitWebView *web_view, WebKitWebFrame *frame,
             WebKitWebResource *resource, WebKitNetworkRequest *request,
             WebKitNetworkResponse *response, gpointer data)
 {
+	GSList *it = adblock_patterns;
+	const gchar *uri;
+
 	(void)web_view;
 	(void)frame;
 	(void)resource;
 	(void)response;
 	(void)data;
 
+	uri = webkit_network_request_get_uri(request);
 	if (show_all_requests)
-		fprintf(stderr, "-> %s\n", webkit_network_request_get_uri(request));
+		fprintf(stderr, "-> %s\n", uri);
 
-	/* XXX Changing the URI here using webkit_network_request_set_uri()
-	 * effectively blocks the request. */
+	while (it)
+	{
+		if (g_regex_match((GRegex *)(it->data), uri, 0, NULL))
+		{
+			webkit_network_request_set_uri(request, "about:blank");
+			if (show_all_requests)
+				fprintf(stderr, "\tBLOCKED!\n");
+			return;
+		}
+		it = g_slist_next(it);
+	}
 }
 
 void
@@ -327,6 +342,44 @@ zea_uri_changed(GObject *obj, GParamSpec *pspec, gpointer data)
 }
 
 void
+zea_load_adblock(void)
+{
+	GRegex *re = NULL;
+	GError *err = NULL;
+	GIOChannel *channel = NULL;
+	gchar *path = NULL;
+	gchar *buf = NULL;
+	gsize length, term;
+
+	path = g_strdup_printf("%s/zea/adblock.black", g_get_user_config_dir());
+	channel = g_io_channel_new_file(path, "r", &err);
+	if (channel != NULL)
+	{
+		while (g_io_channel_read_line(channel, &buf, &length, &term, &err)
+		       == G_IO_STATUS_NORMAL)
+		{
+			g_strstrip(buf);
+			re = g_regex_new(buf,
+			                 G_REGEX_CASELESS | G_REGEX_OPTIMIZE,
+			                 G_REGEX_MATCH_PARTIAL, &err);
+			if (err != NULL)
+			{
+				fprintf(stderr, "zea: Could not compile regex: %s\n", buf);
+				g_error_free(err);
+				err = NULL;
+			}
+			adblock_patterns = g_slist_append(adblock_patterns, re);
+
+			g_free(buf);
+		}
+
+		if (err != NULL)
+			g_free(err);
+	}
+	g_free(path);
+}
+
+void
 zea_load_status_changed(GObject *obj, GParamSpec *pspec, gpointer data)
 {
 	struct Client *c = (struct Client *)data;
@@ -469,6 +522,8 @@ main(int argc, char **argv)
 		fprintf(stderr, "Usage: zea [OPTIONS] <URI>\n");
 		exit(EXIT_FAILURE);
 	}
+
+	zea_load_adblock();
 
 	first_uri = g_strdup(argv[optind]);
 	for (i = optind; i < argc; i++)
