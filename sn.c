@@ -6,9 +6,10 @@
 
 static void sn_destroy_client(GtkWidget *, gpointer);
 static void sn_new_client(const gchar *uri);
-static gboolean sn_new_window_request(WebKitWebView *, WebKitWebFrame *,
-                      WebKitNetworkRequest *, WebKitWebNavigationAction *,
-                      WebKitWebPolicyDecision *, gpointer);
+static gboolean sn_new_client_request(WebKitWebView *, WebKitWebFrame *,
+                                      WebKitNetworkRequest *,
+                                      WebKitWebNavigationAction *,
+                                      WebKitWebPolicyDecision *, gpointer);
 static void sn_title_changed(GObject *, GParamSpec *, gpointer);
 
 
@@ -65,7 +66,7 @@ sn_new_client(const gchar *uri)
 	                 G_CALLBACK(sn_title_changed), c->win);
 	g_signal_connect(G_OBJECT(c->web_view),
 	                 "new-window-policy-decision-requested",
-	                 G_CALLBACK(sn_new_window_request), NULL);
+	                 G_CALLBACK(sn_new_client_request), NULL);
 
 	c->scroll = gtk_scrolled_window_new(NULL, NULL);
 
@@ -80,7 +81,7 @@ sn_new_client(const gchar *uri)
 }
 
 gboolean
-sn_new_window_request(WebKitWebView *web_view, WebKitWebFrame *frame,
+sn_new_client_request(WebKitWebView *web_view, WebKitWebFrame *frame,
                       WebKitNetworkRequest *request,
                       WebKitWebNavigationAction *navigation_action,
                       WebKitWebPolicyDecision *policy_decision,
