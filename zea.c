@@ -21,9 +21,9 @@ static gboolean zea_new_client_request(WebKitWebView *, WebKitWebFrame *,
                                        WebKitNetworkRequest *,
                                        WebKitWebNavigationAction *,
                                        WebKitWebPolicyDecision *, gpointer);
+static void zea_scroll(GtkAdjustment *, gint, gdouble);
 static void zea_title_changed(GObject *, GParamSpec *, gpointer);
 static void zea_uri_changed(GObject *, GParamSpec *, gpointer);
-static void zea_scroll(GtkAdjustment *, gint, gdouble);
 static void zea_web_view_hover(WebKitWebView *, gchar *, gchar *, gpointer);
 static gboolean zea_web_view_key(GtkWidget *, GdkEvent *, gpointer);
 
@@ -234,6 +234,22 @@ zea_new_client_request(WebKitWebView *web_view, WebKitWebFrame *frame,
 }
 
 void
+zea_scroll(GtkAdjustment *a, gint step_type, gdouble factor)
+{
+	gdouble new, lower, upper, step;
+	lower = gtk_adjustment_get_lower(a);
+	upper = gtk_adjustment_get_upper(a) - gtk_adjustment_get_page_size(a) + lower;
+	if (step_type == 0)
+		step = gtk_adjustment_get_step_increment(a);
+	else
+		step = gtk_adjustment_get_page_increment(a);
+	new = gtk_adjustment_get_value(a) + factor * step;
+	new = new < lower ? lower : new;
+	new = new > upper ? upper : new;
+	gtk_adjustment_set_value(a, new);
+}
+
+void
 zea_title_changed(GObject *obj, GParamSpec *pspec, gpointer data)
 {
 	const gchar *t;
@@ -257,22 +273,6 @@ zea_uri_changed(GObject *obj, GParamSpec *pspec, gpointer data)
 
 	t = webkit_web_view_get_uri(WEBKIT_WEB_VIEW(c->web_view));
 	gtk_entry_set_text(GTK_ENTRY(c->location), (t == NULL ? "zea" : t));
-}
-
-void
-zea_scroll(GtkAdjustment *a, gint step_type, gdouble factor)
-{
-	gdouble new, lower, upper, step;
-	lower = gtk_adjustment_get_lower(a);
-	upper = gtk_adjustment_get_upper(a) - gtk_adjustment_get_page_size(a) + lower;
-	if (step_type == 0)
-		step = gtk_adjustment_get_step_increment(a);
-	else
-		step = gtk_adjustment_get_page_increment(a);
-	new = gtk_adjustment_get_value(a) + factor * step;
-	new = new < lower ? lower : new;
-	new = new > upper ? upper : new;
-	gtk_adjustment_set_value(a, new);
 }
 
 void
