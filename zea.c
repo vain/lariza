@@ -230,6 +230,15 @@ zea_new_client(const gchar *uri)
 	else
 	{
 		c->win = gtk_plug_new(embed);
+		while (!gtk_plug_get_embedded(GTK_PLUG(c->win)))
+		{
+			fprintf(stderr, "zea: Not yet embedded! Waiting a second...\n");
+			sleep(1);
+
+			if (c->win != NULL)
+				gtk_widget_destroy(c->win);
+			c->win = gtk_plug_new(embed);
+		}
 	}
 
 	/* When using Gtk2, zea only shows a white area when run in
