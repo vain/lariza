@@ -57,6 +57,8 @@ gboolean
 sn_do_download(WebKitWebView *web_view, WebKitDownload *download, gpointer data)
 {
 	const gchar *uri;
+	char id[16] = "";
+	int ret;
 
 	(void)web_view;
 	(void)data;
@@ -65,7 +67,20 @@ sn_do_download(WebKitWebView *web_view, WebKitDownload *download, gpointer data)
 	if (fork() == 0)
 	{
 		chdir(DOWNLOAD_DIR);
-		if (execlp("xterm", "xterm", "-hold", "-e", "wget", uri, NULL) == -1)
+		if (embed == 0)
+			ret = execlp("xterm", "xterm", "-hold", "-e", "wget", uri, NULL);
+		else
+		{
+			if (snprintf(id, 16, "%ld", embed) >= 16)
+			{
+				fprintf(stderr, "sn: id for xterm embed truncated!\n");
+				exit(EXIT_FAILURE);
+			}
+			ret = execlp("xterm", "xterm", "-hold", "-into", id, "-e", "wget",
+			             uri, NULL);
+		}
+
+		if (ret == -1)
 		{
 			fprintf(stderr, "sn: exec'ing xterm for download");
 			perror(" failed");
