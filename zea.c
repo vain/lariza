@@ -10,6 +10,8 @@
 #define DOWNLOAD_DIR "/tmp/tmp"
 
 
+static void zea_adblock(WebKitWebView *, WebKitWebFrame *, WebKitWebResource *,
+                        WebKitNetworkRequest *, WebKitNetworkResponse *, gpointer);
 static void zea_destroy_client(GtkWidget *, gpointer);
 static gboolean zea_do_download(WebKitWebView *, WebKitDownload *, gpointer);
 static gboolean zea_download_request(WebKitWebView *, WebKitWebFrame *,
@@ -36,6 +38,7 @@ static gint clients = 0;
 static gdouble global_zoom = 1.0;
 static gchar *search_text = NULL;
 static gchar *first_uri = NULL;
+static gboolean show_all_requests = FALSE;
 
 
 struct Client
@@ -48,6 +51,24 @@ struct Client
 	GtkWidget *web_view;
 };
 
+
+void
+zea_adblock(WebKitWebView *web_view, WebKitWebFrame *frame,
+            WebKitWebResource *resource, WebKitNetworkRequest *request,
+            WebKitNetworkResponse *response, gpointer data)
+{
+	(void)web_view;
+	(void)frame;
+	(void)resource;
+	(void)response;
+	(void)data;
+
+	if (show_all_requests)
+		fprintf(stderr, "-> %s\n", webkit_network_request_get_uri(request));
+
+	/* XXX Changing the URI here using webkit_network_request_set_uri()
+	 * effectively blocks the request. */
+}
 
 void
 zea_destroy_client(GtkWidget *obj, gpointer data)
@@ -205,6 +226,8 @@ zea_new_client(const gchar *uri)
 	                 G_CALLBACK(zea_web_view_key), c);
 	g_signal_connect(G_OBJECT(c->web_view), "hovering-over-link",
 	                 G_CALLBACK(zea_web_view_hover), c);
+	g_signal_connect(G_OBJECT(c->web_view), "resource-request-starting",
+	                 G_CALLBACK(zea_adblock), NULL);
 
 	c->scroll = gtk_scrolled_window_new(NULL, NULL);
 
@@ -425,7 +448,7 @@ main(int argc, char **argv)
 
 	gtk_init(&argc, &argv);
 
-	while ((opt = getopt(argc, argv, "z:e:")) != -1)
+	while ((opt = getopt(argc, argv, "z:e:R")) != -1)
 	{
 		switch (opt)
 		{
@@ -434,6 +457,9 @@ main(int argc, char **argv)
 				break;
 			case 'e':
 				embed = atol(optarg);
+				break;
+			case 'R':
+				show_all_requests = TRUE;
 				break;
 		}
 	}
