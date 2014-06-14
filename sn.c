@@ -4,7 +4,15 @@
 #include <gtk/gtk.h>
 #include <webkit/webkit.h>
 
+
+#define DOWNLOAD_DIR "/tmp/tmp"
+
+
 static void sn_destroy_client(GtkWidget *, gpointer);
+static gboolean sn_do_download(WebKitWebView *, WebKitDownload *, gpointer);
+static gboolean sn_download_request(WebKitWebView *, WebKitWebFrame *,
+                                    WebKitNetworkRequest *, gchar *,
+                                    WebKitWebPolicyDecision *, gpointer);
 static void sn_new_client(const gchar *uri);
 static gboolean sn_new_client_request(WebKitWebView *, WebKitWebFrame *,
                                       WebKitNetworkRequest *,
@@ -43,6 +51,47 @@ sn_destroy_client(GtkWidget *obj, gpointer data)
 		gtk_main_quit();
 }
 
+gboolean
+sn_do_download(WebKitWebView *web_view, WebKitDownload *download, gpointer data)
+{
+	const gchar *uri;
+
+	(void)web_view;
+	(void)data;
+
+	uri = webkit_download_get_uri(download);
+	if (fork() == 0)
+	{
+		chdir(DOWNLOAD_DIR);
+		if (execlp("xterm", "xterm", "-hold", "-e", "wget", uri, NULL) == -1)
+		{
+			fprintf(stderr, "sn: exec'ing xterm for download");
+			perror(" failed");
+			exit(EXIT_FAILURE);
+		}
+	}
+
+	return FALSE;
+}
+
+gboolean
+sn_download_request(WebKitWebView *web_view, WebKitWebFrame *frame,
+                    WebKitNetworkRequest *request, gchar *mime_type,
+                    WebKitWebPolicyDecision *policy_decision,
+                    gpointer data)
+{
+	(void)frame;
+	(void)request;
+	(void)data;
+
+	if (!webkit_web_view_can_show_mime_type(web_view, mime_type))
+	{
+		webkit_web_policy_decision_download(policy_decision);
+		return TRUE;
+	}
+	return FALSE;
+}
+
 void
 sn_new_client(const gchar *uri)
 {
@@ -67,6 +116,10 @@ sn_new_client(const gchar *uri)
 	g_signal_connect(G_OBJECT(c->web_view),
 	                 "new-window-policy-decision-requested",
 	                 G_CALLBACK(sn_new_client_request), NULL);
+	g_signal_connect(G_OBJECT(c->web_view), "mime-type-policy-decision-requested",
+	                 G_CALLBACK(sn_download_request), NULL);
+	g_signal_connect(G_OBJECT(c->web_view), "download-requested",
+	                 G_CALLBACK(sn_do_download), NULL);
 
 	c->scroll = gtk_scrolled_window_new(NULL, NULL);
 
