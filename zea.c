@@ -595,7 +595,7 @@ main(int argc, char **argv)
 
 	gtk_init(&argc, &argv);
 
-	while ((opt = getopt(argc, argv, "z:e:RsT")) != -1)
+	while ((opt = getopt(argc, argv, "z:e:rCT")) != -1)
 	{
 		switch (opt)
 		{
@@ -605,10 +605,10 @@ main(int argc, char **argv)
 			case 'e':
 				embed = atol(optarg);
 				break;
-			case 'R':
+			case 'r':
 				show_all_requests = TRUE;
 				break;
-			case 's':
+			case 'C':
 				cooperative_instances = FALSE;
 				break;
 			case 'T':
