@@ -367,6 +367,12 @@ zea_web_view_key(GtkWidget *widget, GdkEvent *event, gpointer data)
 				return TRUE;
 			}
 		}
+		else if (((GdkEventKey *)event)->keyval == GDK_KEY_Escape)
+		{
+			webkit_web_view_stop_loading(WEBKIT_WEB_VIEW(c->web_view));
+			gtk_statusbar_pop(GTK_STATUSBAR(c->status), 1);
+			gtk_statusbar_push(GTK_STATUSBAR(c->status), 1, "Aborted.");
+		}
 	}
 
 	return FALSE;
