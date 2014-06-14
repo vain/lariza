@@ -12,11 +12,11 @@ Features:
 	- Global content zoom
 	- Pluggability into suckless' tabbed
 	- vi-like scrolling (modified by CTRL)
+	- Searching the current page for a word
 	- Support for Flash and Java
 
 Planned features:
 
-	- Searching the current page for a word
 	- Adblock
 	- Keyword based searching (opening "wi foo" will search wikipedia)
 

@@ -23,6 +23,7 @@ static gboolean zea_new_client_request(WebKitWebView *, WebKitWebFrame *,
                                        WebKitNetworkRequest *,
                                        WebKitWebNavigationAction *,
                                        WebKitWebPolicyDecision *, gpointer);
+static void zea_search(gpointer, gint);
 static void zea_scroll(GtkAdjustment *, gint, gdouble);
 static void zea_title_changed(GObject *, GParamSpec *, gpointer);
 static void zea_uri_changed(GObject *, GParamSpec *, gpointer);
@@ -33,6 +34,7 @@ static gboolean zea_web_view_key(GtkWidget *, GdkEvent *, gpointer);
 static Window embed = 0;
 static gint clients = 0;
 static gdouble global_zoom = 1.0;
+static gchar *search_text = NULL;
 
 
 struct Client
@@ -127,6 +129,7 @@ gboolean
 zea_location_key(GtkWidget *widget, GdkEvent *event, gpointer data)
 {
 	struct Client *c = (struct Client *)data;
+	const gchar *t;
 
 	(void)widget;
 
@@ -135,8 +138,16 @@ zea_location_key(GtkWidget *widget, GdkEvent *event, gpointer data)
 		if (((GdkEventKey *)event)->keyval == GDK_KEY_Return)
 		{
 			gtk_widget_grab_focus(c->web_view);
-			webkit_web_view_load_uri(WEBKIT_WEB_VIEW(c->web_view),
-			                         gtk_entry_get_text(GTK_ENTRY(c->location)));
+			t = gtk_entry_get_text(GTK_ENTRY(c->location));
+			if (t != NULL && t[0] == '/')
+			{
+				if (search_text != NULL)
+					g_free(search_text);
+				search_text = g_strdup(t + 1);  /* XXX whacky */
+				zea_search(c, 1);
+			}
+			else
+				webkit_web_view_load_uri(WEBKIT_WEB_VIEW(c->web_view), t);
 			return TRUE;
 		}
 	}
@@ -235,6 +246,18 @@ zea_new_client_request(WebKitWebView *web_view, WebKitWebFrame *frame,
 	zea_new_client(webkit_network_request_get_uri(request));
 
 	return TRUE;
+}
+
+void
+zea_search(gpointer data, gint direction)
+{
+	struct Client *c = (struct Client *)data;
+
+	if (search_text == NULL)
+		return;
+
+	webkit_web_view_search_text(WEBKIT_WEB_VIEW(c->web_view), search_text,
+	                            FALSE, direction == 1, TRUE);
 }
 
 void
@@ -364,6 +387,16 @@ zea_web_view_key(GtkWidget *widget, GdkEvent *event, gpointer data)
 			{
 				zea_scroll(gtk_scrolled_window_get_vadjustment(
 				           GTK_SCROLLED_WINDOW(c->scroll)), 1, -0.5);
+				return TRUE;
+			}
+			if (((GdkEventKey *)event)->keyval == GDK_KEY_n)
+			{
+				zea_search(c, 1);
+				return TRUE;
+			}
+			if (((GdkEventKey *)event)->keyval == GDK_KEY_p)
+			{
+				zea_search(c, -1);
 				return TRUE;
 			}
 		}
