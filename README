@@ -1,7 +1,7 @@
 sn - sonst nix
 ==============
 
-This is a minimalistic web browser using Gtk3 and WebKit. "Sonst nix" is
+This is a minimalistic web browser using Gtk2 and WebKit. "Sonst nix" is
 german and translates roughly to "nothing else". sn is simple and meant
 to stay simple.
 
@@ -10,6 +10,7 @@ Features:
 	- A WebKit viewport
 	- Global content zoom
 	- Pluggability into suckless' tabbed
+	- Support for Flash and Java
 
 Planned features:
 
@@ -36,4 +37,4 @@ Literature
 API references:
 
 	- http://webkitgtk.org/reference/webkitgtk/stable/index.html
-	- https://developer.gnome.org/gtk3/stable/index.html
+	- https://developer.gnome.org/gtk2/stable/index.html

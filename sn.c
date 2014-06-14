@@ -2,7 +2,7 @@
 #include <stdlib.h>
 
 #include <gtk/gtk.h>
-#include <gtk/gtkx.h>
+#include <gdk/gdkx.h>
 #include <webkit/webkit.h>
 
 
@@ -113,9 +113,13 @@ sn_new_client(const gchar *uri)
 		c->win = gtk_plug_new(embed);
 	}
 
+	/* When using Gtk2, sn only shows a white area when run in suckless'
+	 * tabbed. It appears we need to set a default window size for this
+	 * to work. This is not needed when using Gtk3. */
+	gtk_window_set_default_size(GTK_WINDOW(c->win), 1024, 768);
+
 	g_signal_connect(G_OBJECT(c->win), "destroy", G_CALLBACK(sn_destroy_client),
 	                 c);
-	gtk_window_set_has_resize_grip(GTK_WINDOW(c->win), FALSE);
 	gtk_window_set_title(GTK_WINDOW(c->win), "sn");
 
 	c->web_view = webkit_web_view_new();
