@@ -4,42 +4,97 @@
 #include <gtk/gtk.h>
 #include <webkit/webkit.h>
 
-static void sn_new_window(char *uri);
+static void sn_destroy_client(GtkWidget *, gpointer);
+static void sn_new_client(const gchar *uri);
+static gboolean sn_new_window_request(WebKitWebView *, WebKitWebFrame *,
+                      WebKitNetworkRequest *, WebKitWebNavigationAction *,
+                      WebKitWebPolicyDecision *, gpointer);
 static void sn_title_changed(GObject *, GParamSpec *, gpointer);
 
 
+int clients = 0;
 double global_zoom = 1.0;
 
 
-void
-sn_new_window(char *uri)
+struct Client
 {
 	GtkWidget *win;
-	GtkWidget *web_view;
 	GtkWidget *scroll;
+	GtkWidget *web_view;
+};
 
-	win = gtk_window_new(GTK_WINDOW_TOPLEVEL);
-	g_signal_connect(G_OBJECT(win), "delete_event", G_CALLBACK(gtk_main_quit),
-	                 NULL);
-	g_signal_connect(G_OBJECT(win), "destroy", G_CALLBACK(gtk_main_quit),
-	                 NULL);
-	gtk_window_set_has_resize_grip(GTK_WINDOW(win), FALSE);
-	gtk_window_set_title(GTK_WINDOW(win), "sn");
 
-	web_view = webkit_web_view_new();
-	webkit_web_view_set_full_content_zoom(WEBKIT_WEB_VIEW(web_view), TRUE);
-	webkit_web_view_set_zoom_level(WEBKIT_WEB_VIEW(web_view), global_zoom);
-	g_signal_connect(G_OBJECT(web_view), "notify::title",
-	                 G_CALLBACK(sn_title_changed), win);
+void
+sn_destroy_client(GtkWidget *obj, gpointer data)
+{
+	struct Client *c = (struct Client *)data;
 
-	scroll = gtk_scrolled_window_new(NULL, NULL);
+	(void)obj;
 
-	gtk_container_add(GTK_CONTAINER(scroll), web_view);
-	gtk_container_add(GTK_CONTAINER(win), scroll);
+	webkit_web_view_stop_loading(WEBKIT_WEB_VIEW(c->web_view));
+	gtk_widget_destroy(c->web_view);
+	gtk_widget_destroy(c->scroll);
+	gtk_widget_destroy(c->win);
+	free(c);
 
-	gtk_widget_show_all(win);
+	clients--;
+	if (clients == 0)
+		gtk_main_quit();
+}
 
-	webkit_web_view_load_uri(WEBKIT_WEB_VIEW(web_view), uri);
+void
+sn_new_client(const gchar *uri)
+{
+	struct Client *c = malloc(sizeof(struct Client));
+	if (!c)
+	{
+		fprintf(stderr, "sn: fatal: malloc failed\n");
+		exit(EXIT_FAILURE);
+	}
+
+	c->win = gtk_window_new(GTK_WINDOW_TOPLEVEL);
+	g_signal_connect(G_OBJECT(c->win), "destroy", G_CALLBACK(sn_destroy_client),
+	                 c);
+	gtk_window_set_has_resize_grip(GTK_WINDOW(c->win), FALSE);
+	gtk_window_set_title(GTK_WINDOW(c->win), "sn");
+
+	c->web_view = webkit_web_view_new();
+	webkit_web_view_set_full_content_zoom(WEBKIT_WEB_VIEW(c->web_view), TRUE);
+	webkit_web_view_set_zoom_level(WEBKIT_WEB_VIEW(c->web_view), global_zoom);
+	g_signal_connect(G_OBJECT(c->web_view), "notify::title",
+	                 G_CALLBACK(sn_title_changed), c->win);
+	g_signal_connect(G_OBJECT(c->web_view),
+	                 "new-window-policy-decision-requested",
+	                 G_CALLBACK(sn_new_window_request), NULL);
+
+	c->scroll = gtk_scrolled_window_new(NULL, NULL);
+
+	gtk_container_add(GTK_CONTAINER(c->scroll), c->web_view);
+	gtk_container_add(GTK_CONTAINER(c->win), c->scroll);
+
+	gtk_widget_show_all(c->win);
+
+	webkit_web_view_load_uri(WEBKIT_WEB_VIEW(c->web_view), uri);
+
+	clients++;
+}
+
+gboolean
+sn_new_window_request(WebKitWebView *web_view, WebKitWebFrame *frame,
+                      WebKitNetworkRequest *request,
+                      WebKitWebNavigationAction *navigation_action,
+                      WebKitWebPolicyDecision *policy_decision,
+                      gpointer user_data)
+{
+	(void)web_view;
+	(void)frame;
+	(void)navigation_action;
+	(void)user_data;
+
+	webkit_web_policy_decision_ignore(policy_decision);
+	sn_new_client(webkit_network_request_get_uri(request));
+
+	return TRUE;
 }
 
 void
@@ -78,7 +133,7 @@ main(int argc, char **argv)
 		exit(EXIT_FAILURE);
 	}
 
-	sn_new_window(argv[optind]);
+	sn_new_client(argv[optind]);
 	gtk_main();
 	exit(EXIT_SUCCESS);
 }
