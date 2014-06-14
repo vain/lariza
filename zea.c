@@ -24,6 +24,7 @@ static gboolean zea_new_client_request(WebKitWebView *, WebKitWebFrame *,
 static void zea_title_changed(GObject *, GParamSpec *, gpointer);
 static void zea_uri_changed(GObject *, GParamSpec *, gpointer);
 static void zea_scroll(GtkAdjustment *, gint, gdouble);
+static void zea_web_view_hover(WebKitWebView *, gchar *, gchar *, gpointer);
 static gboolean zea_web_view_key(GtkWidget *, GdkEvent *, gpointer);
 
 
@@ -37,6 +38,7 @@ struct Client
 	GtkWidget *win;
 	GtkWidget *vbox;
 	GtkWidget *location;
+	GtkWidget *status;
 	GtkWidget *scroll;
 	GtkWidget *web_view;
 };
@@ -182,6 +184,8 @@ zea_new_client(const gchar *uri)
 	                 G_CALLBACK(zea_do_download), NULL);
 	g_signal_connect(G_OBJECT(c->web_view), "key-press-event",
 	                 G_CALLBACK(zea_web_view_key), c);
+	g_signal_connect(G_OBJECT(c->web_view), "hovering-over-link",
+	                 G_CALLBACK(zea_web_view_hover), c);
 
 	c->scroll = gtk_scrolled_window_new(NULL, NULL);
 
@@ -191,9 +195,12 @@ zea_new_client(const gchar *uri)
 	g_signal_connect(G_OBJECT(c->location), "key-press-event",
 	                 G_CALLBACK(zea_location_key), c);
 
+	c->status = gtk_statusbar_new();
+
 	c->vbox = gtk_vbox_new(FALSE, 0);
 	gtk_box_pack_start(GTK_BOX(c->vbox), c->location, FALSE, FALSE, 0);
 	gtk_container_add(GTK_CONTAINER(c->vbox), c->scroll);
+	gtk_box_pack_end(GTK_BOX(c->vbox), c->status, FALSE, FALSE, 0);
 
 	gtk_container_add(GTK_CONTAINER(c->win), c->vbox);
 
@@ -263,6 +270,20 @@ zea_scroll(GtkAdjustment *a, gint step_type, gdouble factor)
 	new = new < lower ? lower : new;
 	new = new > upper ? upper : new;
 	gtk_adjustment_set_value(a, new);
+}
+
+void
+zea_web_view_hover(WebKitWebView *web_view, gchar *title, gchar *uri,
+                   gpointer data)
+{
+	struct Client *c = (struct Client *)data;
+
+	(void)web_view;
+	(void)title;
+
+	gtk_statusbar_pop(GTK_STATUSBAR(c->status), 0);
+	if (uri != NULL)
+		gtk_statusbar_push(GTK_STATUSBAR(c->status), 0, uri);
 }
 
 gboolean
