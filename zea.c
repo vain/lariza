@@ -1,13 +1,19 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <string.h>
 
 #include <gtk/gtk.h>
 #include <gdk/gdkx.h>
 #include <gdk/gdkkeysyms.h>
+#include <gio/gio.h>
 #include <webkit/webkit.h>
 
 
 #define DOWNLOAD_DIR "/tmp/tmp"
+#define ZEA_FIFO "/tmp/zea.fifo"
 
 
 static void zea_adblock(WebKitWebView *, WebKitWebFrame *, WebKitWebResource *,
@@ -26,7 +32,9 @@ static gboolean zea_new_client_request(WebKitWebView *, WebKitWebFrame *,
                                        WebKitNetworkRequest *,
                                        WebKitWebNavigationAction *,
                                        WebKitWebPolicyDecision *, gpointer);
+static gboolean zea_remote_msg(GIOChannel *, GIOCondition, gpointer);
 static void zea_search(gpointer, gint);
+static void zea_setup_cooperation(void);
 static void zea_scroll(GtkAdjustment *, gint, gdouble);
 static void zea_title_changed(GObject *, GParamSpec *, gpointer);
 static void zea_uri_changed(GObject *, GParamSpec *, gpointer);
@@ -41,6 +49,9 @@ static gchar *search_text = NULL;
 static gchar *first_uri = NULL;
 static gboolean show_all_requests = FALSE;
 static GSList *adblock_patterns = NULL;
+static gboolean cooperative_instances = TRUE;
+static int cooperative_pipe_fp = 0;
+static gboolean alone = TRUE;
 
 
 struct Client
@@ -195,6 +206,13 @@ zea_location_key(GtkWidget *widget, GdkEvent *event, gpointer data)
 void
 zea_new_client(const gchar *uri)
 {
+	if (cooperative_instances && !alone)
+	{
+		write(cooperative_pipe_fp, uri, strlen(uri));
+		write(cooperative_pipe_fp, "\n", 1);
+		return;
+	}
+
 	struct Client *c = malloc(sizeof(struct Client));
 	if (!c)
 	{
@@ -288,6 +306,24 @@ zea_new_client_request(WebKitWebView *web_view, WebKitWebFrame *frame,
 	return TRUE;
 }
 
+gboolean
+zea_remote_msg(GIOChannel *channel, GIOCondition condition, gpointer data)
+{
+	gchar *uri = NULL;
+
+	(void)condition;
+	(void)data;
+
+	g_io_channel_read_line(channel, &uri, NULL, NULL, NULL);
+	if (uri)
+	{
+		g_strstrip(uri);
+		zea_new_client(uri);
+		g_free(uri);
+	}
+	return TRUE;
+}
+
 void
 zea_search(gpointer data, gint direction)
 {
@@ -298,6 +334,33 @@ zea_search(gpointer data, gint direction)
 
 	webkit_web_view_search_text(WEBKIT_WEB_VIEW(c->web_view), search_text,
 	                            FALSE, direction == 1, TRUE);
+}
+
+void
+zea_setup_cooperation(void)
+{
+	GIOChannel *towatch;
+
+	if (!g_file_test(ZEA_FIFO, G_FILE_TEST_EXISTS))
+		mkfifo(ZEA_FIFO, 0600);
+
+	cooperative_pipe_fp = open(ZEA_FIFO, O_WRONLY | O_NONBLOCK);
+	if (!cooperative_pipe_fp)
+	{
+		fprintf(stderr, "zea: Can't open FIFO at all.\n");
+		return;
+	}
+
+	if (write(cooperative_pipe_fp, "", 0) == -1)
+	{
+		/* Could not do an empty write to the FIFO which means there's
+		 * no one listening. */
+		close(cooperative_pipe_fp);
+		towatch = g_io_channel_new_file(ZEA_FIFO, "r+", NULL);
+		g_io_add_watch(towatch, G_IO_IN, (GIOFunc)zea_remote_msg, NULL);
+	}
+	else
+		alone = FALSE;
 }
 
 void
@@ -502,7 +565,7 @@ main(int argc, char **argv)
 
 	gtk_init(&argc, &argv);
 
-	while ((opt = getopt(argc, argv, "z:e:R")) != -1)
+	while ((opt = getopt(argc, argv, "z:e:Rs")) != -1)
 	{
 		switch (opt)
 		{
@@ -515,6 +578,9 @@ main(int argc, char **argv)
 			case 'R':
 				show_all_requests = TRUE;
 				break;
+			case 's':
+				cooperative_instances = FALSE;
+				break;
 		}
 	}
 
@@ -525,10 +591,12 @@ main(int argc, char **argv)
 	}
 
 	zea_load_adblock();
+	zea_setup_cooperation();
 
 	first_uri = g_strdup(argv[optind]);
 	for (i = optind; i < argc; i++)
 		zea_new_client(argv[i]);
-	gtk_main();
+	if (!cooperative_instances || alone)
+		gtk_main();
 	exit(EXIT_SUCCESS);
 }

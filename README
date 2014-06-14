@@ -15,6 +15,7 @@ Features:
 	- Searching the current page for a word
 	- Adblock
 	- Support for Flash and Java
+	- Cooperative instances using FIFOs (can be turned off)
 
 Planned features:
 
