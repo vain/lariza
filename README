@@ -1,9 +1,8 @@
-zea - zeig's einfach an
-=======================
+                               ==========
+                                 lariza
+                               ==========
 
-zea is a minimalistic web browser using Gtk2, GLib and WebKit. "Zeig's
-einfach an" is german and translates roughly to "just show it" (the damn
-web page).
+A simple web browser using Gtk2, GLib and WebKitGtk.
 
 Features:
 
@@ -22,30 +21,66 @@ Planned features:
 	- Keyword based searching (opening "wi foo" will search wikipedia)
 
 
-Using zea with tabbed
-=====================
+About the name
+==============
 
-The order of arguments for zea doesn't matter. This means you can run it
-like this:
+"lariza" stems from a german sentence:
 
-	$ tabbed -c ./zea file:///home/hans/bookmarks.html -z 0.8 -e
+	Alle anderen waren mir zu anstrengend.
+	 l   a         r    i  z  a
+
+That phrase basically means: "It was too tiresome to deal with any other
+browser." I couldn't find a simple browser that does just what I need.
+Most of them are utterly bloated, others lack essential functions. Thus,
+I was forced to write scripts and tools and stuff to deal with these
+issues. That is what was tiresome. I don't want to work around bugs or
+nonsensical behavior anymore.
+
+So, I wrote my own browser^W WebKit GUI. WebKit does all the dirty work.
+
+
+What lariza is and what it's not
+================================
+
+lariza does what I need. It won't do other things. I'm open for pull
+requests but please don't be upset if I turn them down -- which might
+happen if it's a feature that I simply don't need.
+
+Especially, it's very likely that lariza will never have a "follow
+mode" like dwb, luakit or others have. I've used these browsers for
+quite some time and I also used Firefox extensions that add a "follow
+mode". The point is, "follow mode" doesn't work anymore. This was a good
+thing ten years ago. Today, a lot of website make heavy use of
+JavaScript or hovering. You NEED some kind of pointing device. I found
+using "follow mode" to be very frustrating today, because you still have
+to reach for the mouse all the time. So, you might as well just optimize
+your mousing workflow.
+
+
+Using lariza with tabbed
+========================
+
+The order of arguments for lariza doesn't matter. This means you can run
+it like this:
+
+	$ tabbed -c lariza file:///home/hans/bookmarks.html -z 0.8 -e
 
 Each new tab will then show your bookmarks and is scaled by a factor of
 0.8.
 
-If "-e" is not specified, zea will launch tabbed automatically. Note
+If "-e" is not specified, lariza will launch tabbed automatically. Note
 that you can't use tabbed's "Ctrl+Shift+Enter" hotkey to open a new tab
-this way (zea will simply call "tabbed -c -d", so tabbed will know
-nothing about zea). However, due to zea's cooperative instances, you can
-simply start zea a second time and it will create a new tab.
+this way (lariza will simply call "tabbed -c -d", so tabbed will know
+nothing about lariza). However, due to lariza's cooperative instances,
+you can simply start lariza a second time and it will create a new tab.
 
 
 Adblock
 =======
 
-zea has built-in adblock functionality. In each line of
+lariza has built-in adblock functionality. In each line of
 
-	~/.config/zea/adblock.black
+	~/.config/lariza/adblock.black
 
 you can store a regular expression. These expressions match
 case-insensitive and partially, i.e. ".*foo.*" is the same as ".*FOO.*"

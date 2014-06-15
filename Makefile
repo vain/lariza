@@ -1,5 +1,5 @@
 CFLAGS += -Wall -Wextra -O3
-__NAME__ = zea
+__NAME__ = lariza
 
 $(__NAME__): browser.c
 	$(CC) $(CFLAGS) $(LDFLAGS) \
