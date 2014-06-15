@@ -474,62 +474,45 @@ key_web_view(GtkWidget *widget, GdkEvent *event, gpointer data)
 	{
 		if (((GdkEventKey *)event)->state & GDK_CONTROL_MASK)
 		{
-			if (((GdkEventKey *)event)->keyval == GDK_KEY_o)
+			switch (((GdkEventKey *)event)->keyval)
 			{
-				gtk_widget_grab_focus(c->location);
-				return TRUE;
-			}
-			else if (((GdkEventKey *)event)->keyval == GDK_KEY_h)
-			{
-				scroll(gtk_scrolled_window_get_hadjustment(
-				       GTK_SCROLLED_WINDOW(c->scroll)), 0, -1);
-				return TRUE;
-			}
-			else if (((GdkEventKey *)event)->keyval == GDK_KEY_j)
-			{
-				scroll(gtk_scrolled_window_get_vadjustment(
-				       GTK_SCROLLED_WINDOW(c->scroll)), 0, 1);
-				return TRUE;
-			}
-			else if (((GdkEventKey *)event)->keyval == GDK_KEY_k)
-			{
-				scroll(gtk_scrolled_window_get_vadjustment(
-				       GTK_SCROLLED_WINDOW(c->scroll)), 0, -1);
-				return TRUE;
-			}
-			else if (((GdkEventKey *)event)->keyval == GDK_KEY_l)
-			{
-				scroll(gtk_scrolled_window_get_hadjustment(
-				       GTK_SCROLLED_WINDOW(c->scroll)), 0, 1);
-				return TRUE;
-			}
-			else if (((GdkEventKey *)event)->keyval == GDK_KEY_f)
-			{
-				scroll(gtk_scrolled_window_get_vadjustment(
-				       GTK_SCROLLED_WINDOW(c->scroll)), 1, 0.5);
-				return TRUE;
-			}
-			else if (((GdkEventKey *)event)->keyval == GDK_KEY_b)
-			{
-				scroll(gtk_scrolled_window_get_vadjustment(
-				       GTK_SCROLLED_WINDOW(c->scroll)), 1, -0.5);
-				return TRUE;
-			}
-			else if (((GdkEventKey *)event)->keyval == GDK_KEY_n)
-			{
-				search(c, 1);
-				return TRUE;
-			}
-			else if (((GdkEventKey *)event)->keyval == GDK_KEY_p)
-			{
-				search(c, -1);
-				return TRUE;
-			}
-			else if (((GdkEventKey *)event)->keyval == GDK_KEY_g)
-			{
-				webkit_web_view_load_uri(WEBKIT_WEB_VIEW(c->web_view),
-				                         first_uri);
-				return TRUE;
+				case GDK_KEY_o:
+					gtk_widget_grab_focus(c->location);
+					return TRUE;
+				case GDK_KEY_h:
+					scroll(gtk_scrolled_window_get_hadjustment(
+					       GTK_SCROLLED_WINDOW(c->scroll)), 0, -1);
+					return TRUE;
+				case GDK_KEY_j:
+					scroll(gtk_scrolled_window_get_vadjustment(
+					       GTK_SCROLLED_WINDOW(c->scroll)), 0, 1);
+					return TRUE;
+				case GDK_KEY_k:
+					scroll(gtk_scrolled_window_get_vadjustment(
+					       GTK_SCROLLED_WINDOW(c->scroll)), 0, -1);
+					return TRUE;
+				case GDK_KEY_l:
+					scroll(gtk_scrolled_window_get_hadjustment(
+					       GTK_SCROLLED_WINDOW(c->scroll)), 0, 1);
+					return TRUE;
+				case GDK_KEY_f:
+					scroll(gtk_scrolled_window_get_vadjustment(
+					       GTK_SCROLLED_WINDOW(c->scroll)), 1, 0.5);
+					return TRUE;
+				case GDK_KEY_b:
+					scroll(gtk_scrolled_window_get_vadjustment(
+					       GTK_SCROLLED_WINDOW(c->scroll)), 1, -0.5);
+					return TRUE;
+				case GDK_KEY_n:
+					search(c, 1);
+					return TRUE;
+				case GDK_KEY_p:
+					search(c, -1);
+					return TRUE;
+				case GDK_KEY_g:
+					webkit_web_view_load_uri(WEBKIT_WEB_VIEW(c->web_view),
+					                         first_uri);
+					return TRUE;
 			}
 		}
 		else if (((GdkEventKey *)event)->keyval == GDK_KEY_Escape)
