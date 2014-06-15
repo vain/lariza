@@ -12,9 +12,8 @@
 #include <webkit/webkit.h>
 
 
-#define __NAME__ "zea"
 #define DOWNLOAD_DIR "/tmp/tmp"
-#define ZEA_LANGUAGE "en-US"
+#define LANGUAGE "en-US"
 
 
 static void adblock(WebKitWebView *, WebKitWebFrame *, WebKitWebResource *,
@@ -275,8 +274,8 @@ new_client(const gchar *uri)
 
 	if (!language_set)
 	{
-		g_object_set(webkit_get_default_session(), "accept-language",
-		             ZEA_LANGUAGE, NULL);
+		g_object_set(webkit_get_default_session(), "accept-language", LANGUAGE,
+		             NULL);
 		language_set = TRUE;
 	}
 
