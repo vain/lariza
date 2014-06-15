@@ -14,6 +14,7 @@
 
 #define DOWNLOAD_DIR "/tmp/tmp"
 #define ZEA_FIFO "/tmp/zea.fifo"
+#define ZEA_LANGUAGE "en-US"
 
 
 static void zea_adblock(WebKitWebView *, WebKitWebFrame *, WebKitWebResource *,
@@ -55,6 +56,7 @@ static gboolean cooperative_instances = TRUE;
 static int cooperative_pipe_fp = 0;
 static gboolean alone = TRUE;
 static gboolean launch_tabbed = TRUE;
+static gboolean language_set = FALSE;
 
 
 struct Client
@@ -271,6 +273,13 @@ zea_new_client(const gchar *uri)
 	                 G_CALLBACK(zea_web_view_hover), c);
 	g_signal_connect(G_OBJECT(c->web_view), "resource-request-starting",
 	                 G_CALLBACK(zea_adblock), NULL);
+
+	if (!language_set)
+	{
+		g_object_set(webkit_get_default_session(), "accept-language",
+		             ZEA_LANGUAGE, NULL);
+		language_set = TRUE;
+	}
 
 	c->scroll = gtk_scrolled_window_new(NULL, NULL);
 
