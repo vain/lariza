@@ -34,7 +34,7 @@ static gboolean download_request(WebKitWebView *, WebKitWebFrame *,
                                  WebKitNetworkRequest *, gchar *,
                                  WebKitWebPolicyDecision *, gpointer);
 static gboolean download_wget(WebKitWebView *, WebKitDownload *, gpointer);
-static gchar *ensure_http_prefix(const gchar *);
+static gchar *ensure_url_scheme(const gchar *);
 static void hover_web_view(WebKitWebView *, gchar *, gchar *, gpointer);
 static gboolean key_location(GtkWidget *, GdkEvent *, gpointer);
 static gboolean key_web_view(GtkWidget *, GdkEvent *, gpointer);
@@ -263,7 +263,7 @@ client_new(const gchar *uri)
 	gtk_widget_grab_focus(c->web_view);
 	gtk_widget_show_all(c->win);
 
-	f = ensure_http_prefix(uri);
+	f = ensure_url_scheme(uri);
 	webkit_web_view_load_uri(WEBKIT_WEB_VIEW(c->web_view), f);
 	g_free(f);
 
@@ -423,14 +423,15 @@ download_wget(WebKitWebView *web_view, WebKitDownload *download, gpointer data)
 }
 
 gchar *
-ensure_http_prefix(const gchar *t)
+ensure_url_scheme(const gchar *t)
 {
 	gchar *f;
 
 	f = g_ascii_strdown(t, -1);
-	if (!g_str_has_prefix(f, "http://") &&
-		!g_str_has_prefix(f, "https://") &&
-		!g_str_has_prefix(f, "file://"))
+	if (!g_str_has_prefix(f, "http:") &&
+		!g_str_has_prefix(f, "https:") &&
+		!g_str_has_prefix(f, "file:") &&
+		!g_str_has_prefix(f, "about:"))
 	{
 		g_free(f);
 		f = g_strdup_printf("http://%s", t);
@@ -479,7 +480,7 @@ key_location(GtkWidget *widget, GdkEvent *event, gpointer data)
 				}
 				else
 				{
-					f = ensure_http_prefix(t);
+					f = ensure_url_scheme(t);
 					webkit_web_view_load_uri(WEBKIT_WEB_VIEW(c->web_view), f);
 					g_free(f);
 				}
