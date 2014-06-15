@@ -431,9 +431,9 @@ ensure_url_scheme(const gchar *t)
 
 	f = g_ascii_strdown(t, -1);
 	if (!g_str_has_prefix(f, "http:") &&
-		!g_str_has_prefix(f, "https:") &&
-		!g_str_has_prefix(f, "file:") &&
-		!g_str_has_prefix(f, "about:"))
+	    !g_str_has_prefix(f, "https:") &&
+	    !g_str_has_prefix(f, "file:") &&
+	    !g_str_has_prefix(f, "about:"))
 	{
 		g_free(f);
 		f = g_strdup_printf("http://%s", t);
@@ -462,8 +462,7 @@ grab_environment_configuration(void)
 }
 
 void
-hover_web_view(WebKitWebView *web_view, gchar *title, gchar *uri,
-                   gpointer data)
+hover_web_view(WebKitWebView *web_view, gchar *title, gchar *uri, gpointer data)
 {
 	struct Client *c = (struct Client *)data;
 
