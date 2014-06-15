@@ -33,6 +33,12 @@ like this:
 Each new tab will then show your bookmarks and is scaled by a factor of
 0.8.
 
+If "-e" is not specified, zea will launch tabbed automatically. Note
+that you can't use tabbed's "Ctrl+Shift+Enter" hotkey to open a new tab
+this way (zea will simply call "tabbed -c -d", so tabbed will know
+nothing about zea). However, due to zea's cooperative instances, you can
+simply start zea a second time and it will create a new tab.
+
 
 Adblock
 =======
