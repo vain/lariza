@@ -12,36 +12,37 @@
 #include <webkit/webkit.h>
 
 
+#define __NAME__ "zea"
 #define DOWNLOAD_DIR "/tmp/tmp"
 #define ZEA_LANGUAGE "en-US"
 
 
-static void zea_adblock(WebKitWebView *, WebKitWebFrame *, WebKitWebResource *,
-                        WebKitNetworkRequest *, WebKitNetworkResponse *, gpointer);
-static void zea_destroy_client(GtkWidget *, gpointer);
-static gboolean zea_do_download(WebKitWebView *, WebKitDownload *, gpointer);
-static gboolean zea_download_request(WebKitWebView *, WebKitWebFrame *,
-                                     WebKitNetworkRequest *, gchar *,
-                                     WebKitWebPolicyDecision *, gpointer);
-static Window zea_launch_tabbed(void);
-static void zea_load_adblock(void);
-static void zea_load_status_changed(GObject *obj, GParamSpec *pspec,
-                                    gpointer data);
-static gboolean zea_location_key(GtkWidget *, GdkEvent *, gpointer);
-static void zea_new_client(const gchar *uri);
-static gboolean zea_new_client_request(WebKitWebView *, WebKitWebFrame *,
-                                       WebKitNetworkRequest *,
-                                       WebKitWebNavigationAction *,
-                                       WebKitWebPolicyDecision *, gpointer);
-static gboolean zea_remote_msg(GIOChannel *, GIOCondition, gpointer);
-static void zea_search(gpointer, gint);
-static void zea_setup_cooperation(void);
-static void zea_scroll(GtkAdjustment *, gint, gdouble);
-static void zea_title_changed(GObject *, GParamSpec *, gpointer);
-static void zea_uri_changed(GObject *, GParamSpec *, gpointer);
-static void zea_usage(void);
-static void zea_web_view_hover(WebKitWebView *, gchar *, gchar *, gpointer);
-static gboolean zea_web_view_key(GtkWidget *, GdkEvent *, gpointer);
+static void adblock(WebKitWebView *, WebKitWebFrame *, WebKitWebResource *,
+                    WebKitNetworkRequest *, WebKitNetworkResponse *, gpointer);
+static void destroy_client(GtkWidget *, gpointer);
+static gboolean do_download(WebKitWebView *, WebKitDownload *, gpointer);
+static gboolean download_request(WebKitWebView *, WebKitWebFrame *,
+                                 WebKitNetworkRequest *, gchar *,
+                                 WebKitWebPolicyDecision *, gpointer);
+static Window launch_tabbed(void);
+static void load_adblock(void);
+static void load_status_changed(GObject *obj, GParamSpec *pspec,
+                                gpointer data);
+static gboolean location_key(GtkWidget *, GdkEvent *, gpointer);
+static void new_client(const gchar *uri);
+static gboolean new_client_request(WebKitWebView *, WebKitWebFrame *,
+                                   WebKitNetworkRequest *,
+                                   WebKitWebNavigationAction *,
+                                   WebKitWebPolicyDecision *, gpointer);
+static gboolean remote_msg(GIOChannel *, GIOCondition, gpointer);
+static void search(gpointer, gint);
+static void setup_cooperation(void);
+static void scroll(GtkAdjustment *, gint, gdouble);
+static void title_changed(GObject *, GParamSpec *, gpointer);
+static void uri_changed(GObject *, GParamSpec *, gpointer);
+static void usage(void);
+static void web_view_hover(WebKitWebView *, gchar *, gchar *, gpointer);
+static gboolean web_view_key(GtkWidget *, GdkEvent *, gpointer);
 
 
 static Window embed = 0;
@@ -54,7 +55,7 @@ static GSList *adblock_patterns = NULL;
 static gboolean cooperative_instances = TRUE;
 static int cooperative_pipe_fp = 0;
 static gboolean alone = TRUE;
-static gboolean launch_tabbed = TRUE;
+static gboolean automagic_tabbed = TRUE;
 static gboolean language_set = FALSE;
 
 
@@ -70,9 +71,9 @@ struct Client
 
 
 void
-zea_adblock(WebKitWebView *web_view, WebKitWebFrame *frame,
-            WebKitWebResource *resource, WebKitNetworkRequest *request,
-            WebKitNetworkResponse *response, gpointer data)
+adblock(WebKitWebView *web_view, WebKitWebFrame *frame,
+        WebKitWebResource *resource, WebKitNetworkRequest *request,
+        WebKitNetworkResponse *response, gpointer data)
 {
 	GSList *it = adblock_patterns;
 	const gchar *uri;
@@ -101,7 +102,7 @@ zea_adblock(WebKitWebView *web_view, WebKitWebFrame *frame,
 }
 
 void
-zea_destroy_client(GtkWidget *obj, gpointer data)
+destroy_client(GtkWidget *obj, gpointer data)
 {
 	struct Client *c = (struct Client *)data;
 
@@ -122,7 +123,7 @@ zea_destroy_client(GtkWidget *obj, gpointer data)
 }
 
 gboolean
-zea_do_download(WebKitWebView *web_view, WebKitDownload *download, gpointer data)
+do_download(WebKitWebView *web_view, WebKitDownload *download, gpointer data)
 {
 	const gchar *uri;
 	char id[16] = "";
@@ -141,7 +142,7 @@ zea_do_download(WebKitWebView *web_view, WebKitDownload *download, gpointer data
 		{
 			if (snprintf(id, 16, "%ld", embed) >= 16)
 			{
-				fprintf(stderr, "zea: id for xterm embed truncated!\n");
+				fprintf(stderr, __NAME__": id for xterm embed truncated!\n");
 				exit(EXIT_FAILURE);
 			}
 			ret = execlp("xterm", "xterm", "-hold", "-into", id, "-e", "wget",
@@ -150,7 +151,7 @@ zea_do_download(WebKitWebView *web_view, WebKitDownload *download, gpointer data
 
 		if (ret == -1)
 		{
-			fprintf(stderr, "zea: exec'ing xterm for download");
+			fprintf(stderr, __NAME__": exec'ing xterm for download");
 			perror(" failed");
 			exit(EXIT_FAILURE);
 		}
@@ -160,10 +161,9 @@ zea_do_download(WebKitWebView *web_view, WebKitDownload *download, gpointer data
 }
 
 gboolean
-zea_download_request(WebKitWebView *web_view, WebKitWebFrame *frame,
-                     WebKitNetworkRequest *request, gchar *mime_type,
-                     WebKitWebPolicyDecision *policy_decision,
-                     gpointer data)
+download_request(WebKitWebView *web_view, WebKitWebFrame *frame,
+                 WebKitNetworkRequest *request, gchar *mime_type,
+                 WebKitWebPolicyDecision *policy_decision, gpointer data)
 {
 	(void)frame;
 	(void)request;
@@ -178,7 +178,7 @@ zea_download_request(WebKitWebView *web_view, WebKitWebFrame *frame,
 }
 
 gboolean
-zea_location_key(GtkWidget *widget, GdkEvent *event, gpointer data)
+location_key(GtkWidget *widget, GdkEvent *event, gpointer data)
 {
 	struct Client *c = (struct Client *)data;
 	const gchar *t;
@@ -196,7 +196,7 @@ zea_location_key(GtkWidget *widget, GdkEvent *event, gpointer data)
 				if (search_text != NULL)
 					g_free(search_text);
 				search_text = g_strdup(t + 1);  /* XXX whacky */
-				zea_search(c, 1);
+				search(c, 1);
 			}
 			else
 				webkit_web_view_load_uri(WEBKIT_WEB_VIEW(c->web_view), t);
@@ -208,7 +208,7 @@ zea_location_key(GtkWidget *widget, GdkEvent *event, gpointer data)
 }
 
 void
-zea_new_client(const gchar *uri)
+new_client(const gchar *uri)
 {
 	if (cooperative_instances && !alone)
 	{
@@ -220,7 +220,7 @@ zea_new_client(const gchar *uri)
 	struct Client *c = malloc(sizeof(struct Client));
 	if (!c)
 	{
-		fprintf(stderr, "zea: fatal: malloc failed\n");
+		fprintf(stderr, __NAME__": fatal: malloc failed\n");
 		exit(EXIT_FAILURE);
 	}
 
@@ -230,7 +230,7 @@ zea_new_client(const gchar *uri)
 		c->win = gtk_plug_new(embed);
 		if (!gtk_plug_get_embedded(GTK_PLUG(c->win)))
 		{
-			fprintf(stderr, "zea: Can't plug-in to XID %ld.\n", embed);
+			fprintf(stderr, __NAME__": Can't plug-in to XID %ld.\n", embed);
 			gtk_widget_destroy(c->win);
 			c->win = NULL;
 			embed = 0;
@@ -240,38 +240,38 @@ zea_new_client(const gchar *uri)
 	if (c->win == NULL)
 		c->win = gtk_window_new(GTK_WINDOW_TOPLEVEL);
 
-	/* When using Gtk2, zea only shows a white area when run in
-	 * suckless' tabbed. It appears we need to set a default window size
-	 * for this to work. This is not needed when using Gtk3. */
+	/* When using Gtk2, it only shows a white area when run in suckless'
+	 * tabbed. It appears we need to set a default window size for this
+	 * to work. This is not needed when using Gtk3. */
 	gtk_window_set_default_size(GTK_WINDOW(c->win), 1024, 768);
 
 	g_signal_connect(G_OBJECT(c->win), "destroy",
-	                 G_CALLBACK(zea_destroy_client), c);
-	gtk_window_set_title(GTK_WINDOW(c->win), "zea");
+	                 G_CALLBACK(destroy_client), c);
+	gtk_window_set_title(GTK_WINDOW(c->win), __NAME__);
 
 	c->web_view = webkit_web_view_new();
 	webkit_web_view_set_full_content_zoom(WEBKIT_WEB_VIEW(c->web_view), TRUE);
 	webkit_web_view_set_zoom_level(WEBKIT_WEB_VIEW(c->web_view), global_zoom);
 	g_signal_connect(G_OBJECT(c->web_view), "notify::title",
-	                 G_CALLBACK(zea_title_changed), c);
+	                 G_CALLBACK(title_changed), c);
 	g_signal_connect(G_OBJECT(c->web_view), "notify::uri",
-	                 G_CALLBACK(zea_uri_changed), c);
+	                 G_CALLBACK(uri_changed), c);
 	g_signal_connect(G_OBJECT(c->web_view), "notify::load-status",
-	                 G_CALLBACK(zea_load_status_changed), c);
+	                 G_CALLBACK(load_status_changed), c);
 	g_signal_connect(G_OBJECT(c->web_view),
 	                 "new-window-policy-decision-requested",
-	                 G_CALLBACK(zea_new_client_request), NULL);
+	                 G_CALLBACK(new_client_request), NULL);
 	g_signal_connect(G_OBJECT(c->web_view),
 	                 "mime-type-policy-decision-requested",
-	                 G_CALLBACK(zea_download_request), NULL);
+	                 G_CALLBACK(download_request), NULL);
 	g_signal_connect(G_OBJECT(c->web_view), "download-requested",
-	                 G_CALLBACK(zea_do_download), NULL);
+	                 G_CALLBACK(do_download), NULL);
 	g_signal_connect(G_OBJECT(c->web_view), "key-press-event",
-	                 G_CALLBACK(zea_web_view_key), c);
+	                 G_CALLBACK(web_view_key), c);
 	g_signal_connect(G_OBJECT(c->web_view), "hovering-over-link",
-	                 G_CALLBACK(zea_web_view_hover), c);
+	                 G_CALLBACK(web_view_hover), c);
 	g_signal_connect(G_OBJECT(c->web_view), "resource-request-starting",
-	                 G_CALLBACK(zea_adblock), NULL);
+	                 G_CALLBACK(adblock), NULL);
 
 	if (!language_set)
 	{
@@ -286,7 +286,7 @@ zea_new_client(const gchar *uri)
 
 	c->location = gtk_entry_new();
 	g_signal_connect(G_OBJECT(c->location), "key-press-event",
-	                 G_CALLBACK(zea_location_key), c);
+	                 G_CALLBACK(location_key), c);
 
 	c->status = gtk_statusbar_new();
 	gtk_statusbar_set_has_resize_grip(GTK_STATUSBAR(c->status), FALSE);
@@ -307,11 +307,10 @@ zea_new_client(const gchar *uri)
 }
 
 gboolean
-zea_new_client_request(WebKitWebView *web_view, WebKitWebFrame *frame,
-                       WebKitNetworkRequest *request,
-                       WebKitWebNavigationAction *navigation_action,
-                       WebKitWebPolicyDecision *policy_decision,
-                       gpointer user_data)
+new_client_request(WebKitWebView *web_view, WebKitWebFrame *frame,
+                   WebKitNetworkRequest *request,
+                   WebKitWebNavigationAction *navigation_action,
+                   WebKitWebPolicyDecision *policy_decision, gpointer user_data)
 {
 	(void)web_view;
 	(void)frame;
@@ -319,13 +318,13 @@ zea_new_client_request(WebKitWebView *web_view, WebKitWebFrame *frame,
 	(void)user_data;
 
 	webkit_web_policy_decision_ignore(policy_decision);
-	zea_new_client(webkit_network_request_get_uri(request));
+	new_client(webkit_network_request_get_uri(request));
 
 	return TRUE;
 }
 
 gboolean
-zea_remote_msg(GIOChannel *channel, GIOCondition condition, gpointer data)
+remote_msg(GIOChannel *channel, GIOCondition condition, gpointer data)
 {
 	gchar *uri = NULL;
 
@@ -336,14 +335,14 @@ zea_remote_msg(GIOChannel *channel, GIOCondition condition, gpointer data)
 	if (uri)
 	{
 		g_strstrip(uri);
-		zea_new_client(uri);
+		new_client(uri);
 		g_free(uri);
 	}
 	return TRUE;
 }
 
 void
-zea_search(gpointer data, gint direction)
+search(gpointer data, gint direction)
 {
 	struct Client *c = (struct Client *)data;
 
@@ -355,12 +354,12 @@ zea_search(gpointer data, gint direction)
 }
 
 void
-zea_setup_cooperation(void)
+setup_cooperation(void)
 {
 	GIOChannel *towatch;
 	gchar *fifopath;
 
-	fifopath = g_build_filename(g_get_user_runtime_dir(), "zea.fifo", NULL);
+	fifopath = g_build_filename(g_get_user_runtime_dir(), __NAME__".fifo", NULL);
 
 	if (!g_file_test(fifopath, G_FILE_TEST_EXISTS))
 		mkfifo(fifopath, 0600);
@@ -368,7 +367,7 @@ zea_setup_cooperation(void)
 	cooperative_pipe_fp = open(fifopath, O_WRONLY | O_NONBLOCK);
 	if (!cooperative_pipe_fp)
 	{
-		fprintf(stderr, "zea: Can't open FIFO at all.\n");
+		fprintf(stderr, __NAME__": Can't open FIFO at all.\n");
 	}
 	else
 	{
@@ -378,7 +377,7 @@ zea_setup_cooperation(void)
 			 * no one listening. */
 			close(cooperative_pipe_fp);
 			towatch = g_io_channel_new_file(fifopath, "r+", NULL);
-			g_io_add_watch(towatch, G_IO_IN, (GIOFunc)zea_remote_msg, NULL);
+			g_io_add_watch(towatch, G_IO_IN, (GIOFunc)remote_msg, NULL);
 		}
 		else
 			alone = FALSE;
@@ -388,7 +387,7 @@ zea_setup_cooperation(void)
 }
 
 void
-zea_scroll(GtkAdjustment *a, gint step_type, gdouble factor)
+scroll(GtkAdjustment *a, gint step_type, gdouble factor)
 {
 	gdouble new, lower, upper, step;
 	lower = gtk_adjustment_get_lower(a);
@@ -404,7 +403,7 @@ zea_scroll(GtkAdjustment *a, gint step_type, gdouble factor)
 }
 
 void
-zea_title_changed(GObject *obj, GParamSpec *pspec, gpointer data)
+title_changed(GObject *obj, GParamSpec *pspec, gpointer data)
 {
 	const gchar *t;
 	struct Client *c = (struct Client *)data;
@@ -413,11 +412,11 @@ zea_title_changed(GObject *obj, GParamSpec *pspec, gpointer data)
 	(void)pspec;
 
 	t = webkit_web_view_get_title(WEBKIT_WEB_VIEW(c->web_view));
-	gtk_window_set_title(GTK_WINDOW(c->win), (t == NULL ? "zea" : t));
+	gtk_window_set_title(GTK_WINDOW(c->win), (t == NULL ? __NAME__ : t));
 }
 
 void
-zea_uri_changed(GObject *obj, GParamSpec *pspec, gpointer data)
+uri_changed(GObject *obj, GParamSpec *pspec, gpointer data)
 {
 	const gchar *t;
 	struct Client *c = (struct Client *)data;
@@ -426,18 +425,18 @@ zea_uri_changed(GObject *obj, GParamSpec *pspec, gpointer data)
 	(void)pspec;
 
 	t = webkit_web_view_get_uri(WEBKIT_WEB_VIEW(c->web_view));
-	gtk_entry_set_text(GTK_ENTRY(c->location), (t == NULL ? "zea" : t));
+	gtk_entry_set_text(GTK_ENTRY(c->location), (t == NULL ? __NAME__ : t));
 }
 
 void
-zea_usage(void)
+usage(void)
 {
-	fprintf(stderr, "Usage: zea [OPTION]... <URI>...\n");
+	fprintf(stderr, "Usage: "__NAME__" [OPTION]... <URI>...\n");
 	exit(EXIT_FAILURE);
 }
 
 Window
-zea_launch_tabbed(void)
+launch_tabbed(void)
 {
 	gint tabbed_stdout;
 	GIOChannel *tabbed_stdout_channel;
@@ -450,7 +449,7 @@ zea_launch_tabbed(void)
 	                              NULL, NULL, NULL, &tabbed_stdout, NULL,
 	                              &err))
 	{
-		fprintf(stderr, "zea: Could not launch tabbed: %s\n", err->message);
+		fprintf(stderr, __NAME__": Could not launch tabbed: %s\n", err->message);
 		g_error_free(err);
 		return 0;
 	}
@@ -459,7 +458,7 @@ zea_launch_tabbed(void)
 	g_io_channel_read_line(tabbed_stdout_channel, &output, NULL, NULL, NULL);
 	if (output == NULL)
 	{
-		fprintf(stderr, "zea: Could not read XID from tabbed\n");
+		fprintf(stderr, __NAME__": Could not read XID from tabbed\n");
 		return 0;
 	}
 
@@ -472,7 +471,7 @@ zea_launch_tabbed(void)
 }
 
 void
-zea_load_adblock(void)
+load_adblock(void)
 {
 	GRegex *re = NULL;
 	GError *err = NULL;
@@ -480,7 +479,8 @@ zea_load_adblock(void)
 	gchar *path = NULL;
 	gchar *buf = NULL;
 
-	path = g_build_filename(g_get_user_config_dir(), "zea", "adblock.black", NULL);
+	path = g_build_filename(g_get_user_config_dir(), __NAME__, "adblock.black",
+	                        NULL);
 	channel = g_io_channel_new_file(path, "r", &err);
 	if (channel != NULL)
 	{
@@ -493,7 +493,7 @@ zea_load_adblock(void)
 			                 G_REGEX_MATCH_PARTIAL, &err);
 			if (err != NULL)
 			{
-				fprintf(stderr, "zea: Could not compile regex: %s\n", buf);
+				fprintf(stderr, __NAME__": Could not compile regex: %s\n", buf);
 				g_error_free(err);
 				err = NULL;
 			}
@@ -506,7 +506,7 @@ zea_load_adblock(void)
 }
 
 void
-zea_load_status_changed(GObject *obj, GParamSpec *pspec, gpointer data)
+load_status_changed(GObject *obj, GParamSpec *pspec, gpointer data)
 {
 	struct Client *c = (struct Client *)data;
 
@@ -527,7 +527,7 @@ zea_load_status_changed(GObject *obj, GParamSpec *pspec, gpointer data)
 }
 
 void
-zea_web_view_hover(WebKitWebView *web_view, gchar *title, gchar *uri,
+web_view_hover(WebKitWebView *web_view, gchar *title, gchar *uri,
                    gpointer data)
 {
 	struct Client *c = (struct Client *)data;
@@ -541,7 +541,7 @@ zea_web_view_hover(WebKitWebView *web_view, gchar *title, gchar *uri,
 }
 
 gboolean
-zea_web_view_key(GtkWidget *widget, GdkEvent *event, gpointer data)
+web_view_key(GtkWidget *widget, GdkEvent *event, gpointer data)
 {
 	struct Client *c = (struct Client *)data;
 
@@ -558,48 +558,48 @@ zea_web_view_key(GtkWidget *widget, GdkEvent *event, gpointer data)
 			}
 			else if (((GdkEventKey *)event)->keyval == GDK_KEY_h)
 			{
-				zea_scroll(gtk_scrolled_window_get_hadjustment(
-				           GTK_SCROLLED_WINDOW(c->scroll)), 0, -1);
+				scroll(gtk_scrolled_window_get_hadjustment(
+				       GTK_SCROLLED_WINDOW(c->scroll)), 0, -1);
 				return TRUE;
 			}
 			else if (((GdkEventKey *)event)->keyval == GDK_KEY_j)
 			{
-				zea_scroll(gtk_scrolled_window_get_vadjustment(
-				           GTK_SCROLLED_WINDOW(c->scroll)), 0, 1);
+				scroll(gtk_scrolled_window_get_vadjustment(
+				       GTK_SCROLLED_WINDOW(c->scroll)), 0, 1);
 				return TRUE;
 			}
 			else if (((GdkEventKey *)event)->keyval == GDK_KEY_k)
 			{
-				zea_scroll(gtk_scrolled_window_get_vadjustment(
-				           GTK_SCROLLED_WINDOW(c->scroll)), 0, -1);
+				scroll(gtk_scrolled_window_get_vadjustment(
+				       GTK_SCROLLED_WINDOW(c->scroll)), 0, -1);
 				return TRUE;
 			}
 			else if (((GdkEventKey *)event)->keyval == GDK_KEY_l)
 			{
-				zea_scroll(gtk_scrolled_window_get_hadjustment(
-				           GTK_SCROLLED_WINDOW(c->scroll)), 0, 1);
+				scroll(gtk_scrolled_window_get_hadjustment(
+				       GTK_SCROLLED_WINDOW(c->scroll)), 0, 1);
 				return TRUE;
 			}
 			else if (((GdkEventKey *)event)->keyval == GDK_KEY_f)
 			{
-				zea_scroll(gtk_scrolled_window_get_vadjustment(
-				           GTK_SCROLLED_WINDOW(c->scroll)), 1, 0.5);
+				scroll(gtk_scrolled_window_get_vadjustment(
+				       GTK_SCROLLED_WINDOW(c->scroll)), 1, 0.5);
 				return TRUE;
 			}
 			else if (((GdkEventKey *)event)->keyval == GDK_KEY_b)
 			{
-				zea_scroll(gtk_scrolled_window_get_vadjustment(
-				           GTK_SCROLLED_WINDOW(c->scroll)), 1, -0.5);
+				scroll(gtk_scrolled_window_get_vadjustment(
+				       GTK_SCROLLED_WINDOW(c->scroll)), 1, -0.5);
 				return TRUE;
 			}
 			else if (((GdkEventKey *)event)->keyval == GDK_KEY_n)
 			{
-				zea_search(c, 1);
+				search(c, 1);
 				return TRUE;
 			}
 			else if (((GdkEventKey *)event)->keyval == GDK_KEY_p)
 			{
-				zea_search(c, -1);
+				search(c, -1);
 				return TRUE;
 			}
 			else if (((GdkEventKey *)event)->keyval == GDK_KEY_g)
@@ -636,7 +636,7 @@ main(int argc, char **argv)
 				break;
 			case 'e':
 				embed = atol(optarg);
-				launch_tabbed = FALSE;
+				automagic_tabbed = FALSE;
 				break;
 			case 'r':
 				show_all_requests = TRUE;
@@ -645,25 +645,25 @@ main(int argc, char **argv)
 				cooperative_instances = FALSE;
 				break;
 			case 'T':
-				launch_tabbed = FALSE;
+				automagic_tabbed = FALSE;
 				break;
 			default:
-				zea_usage();
+				usage();
 		}
 	}
 
 	if (optind >= argc)
-		zea_usage();
+		usage();
 
-	zea_load_adblock();
-	zea_setup_cooperation();
+	load_adblock();
+	setup_cooperation();
 
-	if (launch_tabbed && !(cooperative_instances && !alone))
-		embed = zea_launch_tabbed();
+	if (automagic_tabbed && !(cooperative_instances && !alone))
+		embed = launch_tabbed();
 
 	first_uri = g_strdup(argv[optind]);
 	for (i = optind; i < argc; i++)
-		zea_new_client(argv[i]);
+		new_client(argv[i]);
 	if (!cooperative_instances || alone)
 		gtk_main();
 	exit(EXIT_SUCCESS);
