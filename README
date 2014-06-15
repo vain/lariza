@@ -4,7 +4,7 @@
                                ==========
 
 
-A simple web browser using Gtk2, GLib and WebKitGtk.
+A simple web browser using GTK+ 2, GLib and WebKitGTK+.
 
 Features:
 
