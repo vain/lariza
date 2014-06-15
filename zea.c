@@ -418,7 +418,7 @@ zea_uri_changed(GObject *obj, GParamSpec *pspec, gpointer data)
 void
 zea_usage(void)
 {
-	fprintf(stderr, "Usage: zea [OPTIONS] <URI>\n");
+	fprintf(stderr, "Usage: zea [OPTION]... <URI>...\n");
 	exit(EXIT_FAILURE);
 }
 
