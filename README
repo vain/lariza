@@ -1,6 +1,8 @@
+
                                ==========
                                  lariza
                                ==========
+
 
 A simple web browser using Gtk2, GLib and WebKitGtk.
 
@@ -55,6 +57,12 @@ JavaScript or hovering. You NEED some kind of pointing device. I found
 using "follow mode" to be very frustrating today, because you still have
 to reach for the mouse all the time. So, you might as well just optimize
 your mousing workflow.
+
+lariza does not compete with powerful browsers like dwb or luakit, nor
+with monstrous applications like Firefox or Chromium. lariza won't have
+persistent storage, nor a plugin system, nor cloud sync, nor bookmarks.
+
+lariza tries not to exceed 1000 lines of code.
 
 
 Using lariza with tabbed
