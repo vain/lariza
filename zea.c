@@ -444,6 +444,7 @@ zea_launch_tabbed(void)
 	GError *err = NULL;
 	gchar *output = NULL;
 	char *argv[] = { "tabbed", "-c", "-d", NULL };
+	Window plug_into;
 
 	if (!g_spawn_async_with_pipes(NULL, argv, NULL, G_SPAWN_SEARCH_PATH, NULL,
 	                              NULL, NULL, NULL, &tabbed_stdout, NULL,
@@ -465,7 +466,9 @@ zea_launch_tabbed(void)
 	g_io_channel_shutdown(tabbed_stdout_channel, FALSE, NULL);
 
 	g_strstrip(output);
-	return strtol(output, NULL, 16);
+	plug_into = strtol(output, NULL, 16);
+	g_free(output);
+	return plug_into;
 }
 
 void
