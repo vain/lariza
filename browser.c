@@ -159,6 +159,8 @@ client_destroy(GtkWidget *obj, gpointer data)
 void
 client_new(const gchar *uri)
 {
+	gchar *capitalized_name = NULL;
+
 	if (cooperative_instances && !cooperative_alone)
 	{
 		write(cooperative_pipe_fp, uri, strlen(uri));
@@ -187,7 +189,14 @@ client_new(const gchar *uri)
 	}
 
 	if (c->win == NULL)
+	{
 		c->win = gtk_window_new(GTK_WINDOW_TOPLEVEL);
+
+		capitalized_name = g_strdup(__NAME__);
+		capitalized_name[0] = g_ascii_toupper(capitalized_name[0]);
+		gtk_window_set_wmclass(GTK_WINDOW(c->win), __NAME__, capitalized_name);
+		g_free(capitalized_name);
+	}
 
 	/* When using Gtk2, it only shows a white area when run in suckless'
 	 * tabbed. It appears we need to set a default window size for this
@@ -584,7 +593,7 @@ tabbed_launch(void)
 	GIOChannel *tabbed_stdout_channel;
 	GError *err = NULL;
 	gchar *output = NULL;
-	char *argv[] = { "tabbed", "-c", "-d", NULL };
+	char *argv[] = { "tabbed", "-c", "-d", "-n", __NAME__, NULL };
 	Window plug_into;
 
 	if (!g_spawn_async_with_pipes(NULL, argv, NULL, G_SPAWN_SEARCH_PATH, NULL,
