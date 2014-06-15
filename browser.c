@@ -227,6 +227,8 @@ client_new(const gchar *uri)
 	                 G_CALLBACK(download_wget), NULL);
 	g_signal_connect(G_OBJECT(c->web_view), "key-press-event",
 	                 G_CALLBACK(key_web_view), c);
+	g_signal_connect(G_OBJECT(c->web_view), "button-press-event",
+	                 G_CALLBACK(key_web_view), c);
 	g_signal_connect(G_OBJECT(c->web_view), "hovering-over-link",
 	                 G_CALLBACK(hover_web_view), c);
 	g_signal_connect(G_OBJECT(c->web_view), "resource-request-starting",
@@ -535,6 +537,18 @@ key_web_view(GtkWidget *widget, GdkEvent *event, gpointer data)
 			webkit_web_view_stop_loading(WEBKIT_WEB_VIEW(c->web_view));
 			gtk_statusbar_pop(GTK_STATUSBAR(c->status), 1);
 			gtk_statusbar_push(GTK_STATUSBAR(c->status), 1, "Aborted.");
+		}
+	}
+	else if (event->type == GDK_BUTTON_PRESS)
+	{
+		switch (((GdkEventButton *)event)->button)
+		{
+			case 8:
+				webkit_web_view_go_back(WEBKIT_WEB_VIEW(c->web_view));
+				return TRUE;
+			case 9:
+				webkit_web_view_go_forward(WEBKIT_WEB_VIEW(c->web_view));
+				return TRUE;
 		}
 	}
 
