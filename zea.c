@@ -619,6 +619,7 @@ main(int argc, char **argv)
 				break;
 			case 'e':
 				embed = atol(optarg);
+				launch_tabbed = FALSE;
 				break;
 			case 'r':
 				show_all_requests = TRUE;
