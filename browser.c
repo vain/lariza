@@ -450,21 +450,15 @@ grab_environment_configuration(void)
 
 	e = g_getenv(__NAME_UPPERCASE__"_ACCEPTED_LANGUAGE");
 	if (e != NULL)
-	{
 		accepted_language = g_strdup(e);
-	}
 
 	e = g_getenv(__NAME_UPPERCASE__"_DOWNLOAD_DIR");
 	if (e != NULL)
-	{
 		download_dir = g_strdup(e);
-	}
 
 	e = g_getenv(__NAME_UPPERCASE__"_ZOOM");
 	if (e != NULL)
-	{
 		global_zoom = atof(e);
-	}
 }
 
 void
