@@ -34,6 +34,7 @@ static gboolean download_request(WebKitWebView *, WebKitWebFrame *,
                                  WebKitNetworkRequest *, gchar *,
                                  WebKitWebPolicyDecision *, gpointer);
 static gboolean download_wget(WebKitWebView *, WebKitDownload *, gpointer);
+static gchar *ensure_http_prefix(const gchar *);
 static void hover_web_view(WebKitWebView *, gchar *, gchar *, gpointer);
 static gboolean key_location(GtkWidget *, GdkEvent *, gpointer);
 static gboolean key_web_view(GtkWidget *, GdkEvent *, gpointer);
@@ -419,6 +420,23 @@ download_wget(WebKitWebView *web_view, WebKitDownload *download, gpointer data)
 	return FALSE;
 }
 
+gchar *
+ensure_http_prefix(const gchar *t)
+{
+	gchar *f;
+
+	f = g_ascii_strdown(t, -1);
+	if (!g_str_has_prefix(f, "http://") &&
+		!g_str_has_prefix(f, "https://"))
+	{
+		g_free(f);
+		f = g_strdup_printf("http://%s", t);
+		return f;
+	}
+	else
+		return g_strdup(t);
+}
+
 void
 hover_web_view(WebKitWebView *web_view, gchar *title, gchar *uri,
                    gpointer data)
@@ -438,6 +456,7 @@ key_location(GtkWidget *widget, GdkEvent *event, gpointer data)
 {
 	struct Client *c = (struct Client *)data;
 	const gchar *t;
+	gchar *f;
 
 	(void)widget;
 
@@ -456,7 +475,11 @@ key_location(GtkWidget *widget, GdkEvent *event, gpointer data)
 					search(c, 1);
 				}
 				else
-					webkit_web_view_load_uri(WEBKIT_WEB_VIEW(c->web_view), t);
+				{
+					f = ensure_http_prefix(t);
+					webkit_web_view_load_uri(WEBKIT_WEB_VIEW(c->web_view), f);
+					g_free(f);
+				}
 				return TRUE;
 			case GDK_KEY_Escape:
 				t = webkit_web_view_get_uri(WEBKIT_WEB_VIEW(c->web_view));
