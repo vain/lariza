@@ -161,7 +161,7 @@ void
 client_new(const gchar *uri)
 {
 	struct Client *c;
-	gchar *capitalized_name = NULL;
+	gchar *capitalized_name = NULL, *f;
 
 	if (cooperative_instances && !cooperative_alone)
 	{
@@ -263,7 +263,9 @@ client_new(const gchar *uri)
 	gtk_widget_grab_focus(c->web_view);
 	gtk_widget_show_all(c->win);
 
-	webkit_web_view_load_uri(WEBKIT_WEB_VIEW(c->web_view), uri);
+	f = ensure_http_prefix(uri);
+	webkit_web_view_load_uri(WEBKIT_WEB_VIEW(c->web_view), f);
+	g_free(f);
 
 	clients++;
 }
