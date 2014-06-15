@@ -13,7 +13,6 @@
 
 
 #define DOWNLOAD_DIR "/tmp/tmp"
-#define ZEA_FIFO "/tmp/zea.fifo"
 #define ZEA_LANGUAGE "en-US"
 
 
@@ -359,27 +358,33 @@ void
 zea_setup_cooperation(void)
 {
 	GIOChannel *towatch;
+	gchar *fifopath;
 
-	if (!g_file_test(ZEA_FIFO, G_FILE_TEST_EXISTS))
-		mkfifo(ZEA_FIFO, 0600);
+	fifopath = g_build_filename(g_get_user_runtime_dir(), "zea.fifo", NULL);
 
-	cooperative_pipe_fp = open(ZEA_FIFO, O_WRONLY | O_NONBLOCK);
+	if (!g_file_test(fifopath, G_FILE_TEST_EXISTS))
+		mkfifo(fifopath, 0600);
+
+	cooperative_pipe_fp = open(fifopath, O_WRONLY | O_NONBLOCK);
 	if (!cooperative_pipe_fp)
 	{
 		fprintf(stderr, "zea: Can't open FIFO at all.\n");
-		return;
-	}
-
-	if (write(cooperative_pipe_fp, "", 0) == -1)
-	{
-		/* Could not do an empty write to the FIFO which means there's
-		 * no one listening. */
-		close(cooperative_pipe_fp);
-		towatch = g_io_channel_new_file(ZEA_FIFO, "r+", NULL);
-		g_io_add_watch(towatch, G_IO_IN, (GIOFunc)zea_remote_msg, NULL);
 	}
 	else
-		alone = FALSE;
+	{
+		if (write(cooperative_pipe_fp, "", 0) == -1)
+		{
+			/* Could not do an empty write to the FIFO which means there's
+			 * no one listening. */
+			close(cooperative_pipe_fp);
+			towatch = g_io_channel_new_file(fifopath, "r+", NULL);
+			g_io_add_watch(towatch, G_IO_IN, (GIOFunc)zea_remote_msg, NULL);
+		}
+		else
+			alone = FALSE;
+	}
+
+	g_free(fifopath);
 }
 
 void
