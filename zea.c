@@ -223,14 +223,21 @@ zea_new_client(const gchar *uri)
 		exit(EXIT_FAILURE);
 	}
 
-	if (embed == 0)
-	{
-		c->win = gtk_window_new(GTK_WINDOW_TOPLEVEL);
-	}
-	else
+	c->win = NULL;
+	if (embed != 0)
 	{
 		c->win = gtk_plug_new(embed);
+		if (!gtk_plug_get_embedded(GTK_PLUG(c->win)))
+		{
+			fprintf(stderr, "zea: Can't plug-in to XID %ld.\n", embed);
+			gtk_widget_destroy(c->win);
+			c->win = NULL;
+			embed = 0;
+		}
 	}
+
+	if (c->win == NULL)
+		c->win = gtk_window_new(GTK_WINDOW_TOPLEVEL);
 
 	/* When using Gtk2, zea only shows a white area when run in
 	 * suckless' tabbed. It appears we need to set a default window size
