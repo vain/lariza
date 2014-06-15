@@ -228,7 +228,7 @@ client_new(const gchar *uri)
 	                 G_CALLBACK(download_wget), NULL);
 	g_signal_connect(G_OBJECT(c->web_view), "key-press-event",
 	                 G_CALLBACK(key_web_view), c);
-	g_signal_connect(G_OBJECT(c->web_view), "button-press-event",
+	g_signal_connect(G_OBJECT(c->web_view), "button-release-event",
 	                 G_CALLBACK(key_web_view), c);
 	g_signal_connect(G_OBJECT(c->web_view), "hovering-over-link",
 	                 G_CALLBACK(hover_web_view), c);
@@ -558,7 +558,7 @@ key_web_view(GtkWidget *widget, GdkEvent *event, gpointer data)
 			gtk_statusbar_push(GTK_STATUSBAR(c->status), 1, "Aborted.");
 		}
 	}
-	else if (event->type == GDK_BUTTON_PRESS)
+	else if (event->type == GDK_BUTTON_RELEASE)
 	{
 		switch (((GdkEventButton *)event)->button)
 		{
