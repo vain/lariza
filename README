@@ -12,6 +12,7 @@ Features:
 	- An input box to change the current URL
 	- Global content zoom
 	- Pluggability into suckless' tabbed
+	- Downloading files using wget
 	- vi-like scrolling (modified by CTRL)
 	- Searching the current page for a word
 	- Adblock
