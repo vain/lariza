@@ -641,7 +641,7 @@ tabbed_launch(void)
 	GIOChannel *tabbed_stdout_channel;
 	GError *err = NULL;
 	gchar *output = NULL;
-	char *argv[] = { "tabbed", "-c", "-d", "-n", __NAME__, NULL };
+	char *argv[] = { "tabbed", "-c", "-d", "-p", "s1", "-n", __NAME__, NULL };
 	Window plug_into;
 
 	if (!g_spawn_async_with_pipes(NULL, argv, NULL, G_SPAWN_SEARCH_PATH, NULL,
