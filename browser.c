@@ -467,6 +467,9 @@ gboolean
 key_web_view(GtkWidget *widget, GdkEvent *event, gpointer data)
 {
 	struct Client *c = (struct Client *)data;
+	WebKitHitTestResultContext ht_context;
+	WebKitHitTestResult *ht_result = NULL;
+	char *ht_uri =  NULL;
 
 	(void)widget;
 
@@ -526,6 +529,20 @@ key_web_view(GtkWidget *widget, GdkEvent *event, gpointer data)
 	{
 		switch (((GdkEventButton *)event)->button)
 		{
+			case 2:
+				ht_result = webkit_web_view_get_hit_test_result(
+				                                   WEBKIT_WEB_VIEW(c->web_view),
+				                                       (GdkEventButton *)event);
+				g_object_get(ht_result, "context", &ht_context, NULL);
+				if (ht_context & WEBKIT_HIT_TEST_RESULT_CONTEXT_LINK)
+				{
+					g_object_get(ht_result, "link-uri", &ht_uri, NULL);
+					client_new(ht_uri);
+					g_object_unref(ht_result);
+					return TRUE;
+				}
+				g_object_unref(ht_result);
+				return FALSE;
 			case 8:
 				webkit_web_view_go_back(WEBKIT_WEB_VIEW(c->web_view));
 				return TRUE;
