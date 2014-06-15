@@ -443,20 +443,26 @@ key_location(GtkWidget *widget, GdkEvent *event, gpointer data)
 
 	if (event->type == GDK_KEY_PRESS)
 	{
-		if (((GdkEventKey *)event)->keyval == GDK_KEY_Return)
+		switch (((GdkEventKey *)event)->keyval)
 		{
-			gtk_widget_grab_focus(c->web_view);
-			t = gtk_entry_get_text(GTK_ENTRY(c->location));
-			if (t != NULL && t[0] == '/')
-			{
-				if (search_text != NULL)
-					g_free(search_text);
-				search_text = g_strdup(t + 1);  /* XXX whacky */
-				search(c, 1);
-			}
-			else
-				webkit_web_view_load_uri(WEBKIT_WEB_VIEW(c->web_view), t);
-			return TRUE;
+			case GDK_KEY_Return:
+				gtk_widget_grab_focus(c->web_view);
+				t = gtk_entry_get_text(GTK_ENTRY(c->location));
+				if (t != NULL && t[0] == '/')
+				{
+					if (search_text != NULL)
+						g_free(search_text);
+					search_text = g_strdup(t + 1);  /* XXX whacky */
+					search(c, 1);
+				}
+				else
+					webkit_web_view_load_uri(WEBKIT_WEB_VIEW(c->web_view), t);
+				return TRUE;
+			case GDK_KEY_Escape:
+				t = webkit_web_view_get_uri(WEBKIT_WEB_VIEW(c->web_view));
+				gtk_entry_set_text(GTK_ENTRY(c->location),
+				                   (t == NULL ? __NAME__ : t));
+				return TRUE;
 		}
 	}
 
