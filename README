@@ -53,7 +53,7 @@ Especially, it's very likely that lariza will never have a "follow
 mode" like dwb, luakit or others have. I've used these browsers for
 quite some time and I also used Firefox extensions that add a "follow
 mode". The point is, "follow mode" doesn't work anymore. This was a good
-thing ten years ago. Today, a lot of website make heavy use of
+thing ten years ago. Today, a lot of websites make heavy use of
 JavaScript or hovering. You NEED some kind of pointing device. I found
 using "follow mode" to be very frustrating today, because you still have
 to reach for the mouse all the time. So, you might as well just optimize
