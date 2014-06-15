@@ -429,7 +429,8 @@ ensure_http_prefix(const gchar *t)
 
 	f = g_ascii_strdown(t, -1);
 	if (!g_str_has_prefix(f, "http://") &&
-		!g_str_has_prefix(f, "https://"))
+		!g_str_has_prefix(f, "https://") &&
+		!g_str_has_prefix(f, "file://"))
 	{
 		g_free(f);
 		f = g_strdup_printf("http://%s", t);
