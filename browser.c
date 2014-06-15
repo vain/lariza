@@ -160,7 +160,7 @@ void
 client_new(const gchar *uri)
 {
 	struct Client *c;
-	gchar *capitalized_name = NULL, *f;
+	gchar *f;
 
 	if (cooperative_instances && !cooperative_alone)
 	{
@@ -192,11 +192,7 @@ client_new(const gchar *uri)
 	if (c->win == NULL)
 	{
 		c->win = gtk_window_new(GTK_WINDOW_TOPLEVEL);
-
-		capitalized_name = g_strdup(__NAME__);
-		capitalized_name[0] = g_ascii_toupper(capitalized_name[0]);
-		gtk_window_set_wmclass(GTK_WINDOW(c->win), __NAME__, capitalized_name);
-		g_free(capitalized_name);
+		gtk_window_set_wmclass(GTK_WINDOW(c->win), __NAME__, __NAME_CAPITALIZED__);
 	}
 
 	/* When using Gtk2, it only shows a white area when run in suckless'
@@ -443,36 +439,25 @@ ensure_url_scheme(const gchar *t)
 void
 grab_environment_configuration(void)
 {
-	gchar *u, *v;
 	const gchar *e;
 
-	u = g_ascii_strup(__NAME__, -1);
-
-	v = g_strdup_printf("%s_ACCEPTED_LANGUAGE", u);
-	e = g_getenv(v);
+	e = g_getenv(__NAME_UPPERCASE__"_ACCEPTED_LANGUAGE");
 	if (e != NULL)
 	{
 		accepted_language = g_strdup(e);
 	}
-	g_free(v);
 
-	v = g_strdup_printf("%s_DOWNLOAD_DIR", u);
-	e = g_getenv(v);
+	e = g_getenv(__NAME_UPPERCASE__"_DOWNLOAD_DIR");
 	if (e != NULL)
 	{
 		download_dir = g_strdup(e);
 	}
-	g_free(v);
 
-	v = g_strdup_printf("%s_ZOOM", u);
-	e = g_getenv(v);
+	e = g_getenv(__NAME_UPPERCASE__"_ZOOM");
 	if (e != NULL)
 	{
 		global_zoom = atof(e);
 	}
-	g_free(v);
-
-	g_free(u);
 }
 
 void
