@@ -12,10 +12,6 @@
 #include <webkit/webkit.h>
 
 
-#define DOWNLOAD_DIR "/tmp/tmp"
-#define LANGUAGE "en-US"
-
-
 static void adblock(WebKitWebView *, WebKitWebFrame *, WebKitWebResource *,
                     WebKitNetworkRequest *, WebKitNetworkResponse *, gpointer);
 static void adblock_load(void);
@@ -35,6 +31,7 @@ static gboolean download_request(WebKitWebView *, WebKitWebFrame *,
                                  WebKitWebPolicyDecision *, gpointer);
 static gboolean download_wget(WebKitWebView *, WebKitDownload *, gpointer);
 static gchar *ensure_url_scheme(const gchar *);
+static void grab_environment_configuration(void);
 static void hover_web_view(WebKitWebView *, gchar *, gchar *, gpointer);
 static gboolean key_location(GtkWidget *, GdkEvent *, gpointer);
 static gboolean key_web_view(GtkWidget *, GdkEvent *, gpointer);
@@ -56,11 +53,13 @@ struct Client
 };
 
 
+static gchar *accepted_language = "en-US";
 static GSList *adblock_patterns = NULL;
 static gint clients = 0;
 static gboolean cooperative_alone = TRUE;
 static gboolean cooperative_instances = TRUE;
 static int cooperative_pipe_fp = 0;
+static gchar *download_dir = "/tmp";
 static Window embed = 0;
 static gchar *first_uri = NULL;
 static gdouble global_zoom = 1.0;
@@ -237,8 +236,8 @@ client_new(const gchar *uri)
 
 	if (!language_is_set)
 	{
-		g_object_set(webkit_get_default_session(), "accept-language", LANGUAGE,
-		             NULL);
+		g_object_set(webkit_get_default_session(), "accept-language",
+		             accepted_language, NULL);
 		language_is_set = TRUE;
 	}
 
@@ -397,7 +396,7 @@ download_wget(WebKitWebView *web_view, WebKitDownload *download, gpointer data)
 	uri = webkit_download_get_uri(download);
 	if (fork() == 0)
 	{
-		chdir(DOWNLOAD_DIR);
+		chdir(download_dir);
 		if (embed == 0)
 			ret = execlp("xterm", "xterm", "-hold", "-e", "wget", uri, NULL);
 		else
@@ -439,6 +438,41 @@ ensure_url_scheme(const gchar *t)
 	}
 	else
 		return g_strdup(t);
+}
+
+void
+grab_environment_configuration(void)
+{
+	gchar *u, *v;
+	const gchar *e;
+
+	u = g_ascii_strup(__NAME__, -1);
+
+	v = g_strdup_printf("%s_ACCEPTED_LANGUAGE", u);
+	e = g_getenv(v);
+	if (e != NULL)
+	{
+		accepted_language = g_strdup(e);
+	}
+	g_free(v);
+
+	v = g_strdup_printf("%s_DOWNLOAD_DIR", u);
+	e = g_getenv(v);
+	if (e != NULL)
+	{
+		download_dir = g_strdup(e);
+	}
+	g_free(v);
+
+	v = g_strdup_printf("%s_ZOOM", u);
+	e = g_getenv(v);
+	if (e != NULL)
+	{
+		global_zoom = atof(e);
+	}
+	g_free(v);
+
+	g_free(u);
 }
 
 void
@@ -684,13 +718,12 @@ main(int argc, char **argv)
 
 	gtk_init(&argc, &argv);
 
-	while ((opt = getopt(argc, argv, "z:e:rCT")) != -1)
+	grab_environment_configuration();
+
+	while ((opt = getopt(argc, argv, "e:rCT")) != -1)
 	{
 		switch (opt)
 		{
-			case 'z':
-				global_zoom = atof(optarg);
-				break;
 			case 'e':
 				embed = atol(optarg);
 				tabbed_automagic = FALSE;
