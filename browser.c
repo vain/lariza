@@ -159,6 +159,7 @@ client_destroy(GtkWidget *obj, gpointer data)
 void
 client_new(const gchar *uri)
 {
+	struct Client *c;
 	gchar *capitalized_name = NULL;
 
 	if (cooperative_instances && !cooperative_alone)
@@ -168,7 +169,7 @@ client_new(const gchar *uri)
 		return;
 	}
 
-	struct Client *c = malloc(sizeof(struct Client));
+	c = malloc(sizeof(struct Client));
 	if (!c)
 	{
 		fprintf(stderr, __NAME__": fatal: malloc failed\n");
