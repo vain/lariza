@@ -85,7 +85,7 @@ adblock(WebKitWebView *web_view, WebKitWebFrame *frame,
 
 	uri = webkit_network_request_get_uri(request);
 	if (show_all_requests)
-		fprintf(stderr, "-> %s\n", uri);
+		fprintf(stderr, "   -> %s\n", uri);
 
 	while (it)
 	{
@@ -93,7 +93,7 @@ adblock(WebKitWebView *web_view, WebKitWebFrame *frame,
 		{
 			webkit_network_request_set_uri(request, "about:blank");
 			if (show_all_requests)
-				fprintf(stderr, "\tBLOCKED!\n");
+				fprintf(stderr, "            BLOCKED!\n");
 			return;
 		}
 		it = g_slist_next(it);
@@ -266,6 +266,8 @@ client_new(const gchar *uri)
 	gtk_widget_show_all(c->win);
 
 	f = ensure_url_scheme(uri);
+	if (show_all_requests)
+		fprintf(stderr, "====> %s\n", uri);
 	webkit_web_view_load_uri(WEBKIT_WEB_VIEW(c->web_view), f);
 	g_free(f);
 
@@ -500,6 +502,8 @@ key_location(GtkWidget *widget, GdkEvent *event, gpointer data)
 				else
 				{
 					f = ensure_url_scheme(t);
+					if (show_all_requests)
+						fprintf(stderr, "====> %s\n", f);
 					webkit_web_view_load_uri(WEBKIT_WEB_VIEW(c->web_view), f);
 					g_free(f);
 				}
@@ -565,6 +569,8 @@ key_web_view(GtkWidget *widget, GdkEvent *event, gpointer data)
 					search(c, -1);
 					return TRUE;
 				case GDK_KEY_g:
+					if (show_all_requests)
+						fprintf(stderr, "====> %s\n", first_uri);
 					webkit_web_view_load_uri(WEBKIT_WEB_VIEW(c->web_view),
 					                         first_uri);
 					return TRUE;
