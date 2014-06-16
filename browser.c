@@ -525,6 +525,7 @@ key_web_view(GtkWidget *widget, GdkEvent *event, gpointer data)
 	struct Client *c = (struct Client *)data;
 	WebKitHitTestResultContext ht_context;
 	WebKitHitTestResult *ht_result = NULL;
+	gchar *f;
 	char *ht_uri =  NULL;
 
 	(void)widget;
@@ -569,10 +570,11 @@ key_web_view(GtkWidget *widget, GdkEvent *event, gpointer data)
 					search(c, -1);
 					return TRUE;
 				case GDK_KEY_g:
+					f = ensure_url_scheme(first_uri);
 					if (show_all_requests)
-						fprintf(stderr, "====> %s\n", first_uri);
-					webkit_web_view_load_uri(WEBKIT_WEB_VIEW(c->web_view),
-					                         first_uri);
+						fprintf(stderr, "====> %s\n", f);
+					webkit_web_view_load_uri(WEBKIT_WEB_VIEW(c->web_view), f);
+					g_free(f);
 					return TRUE;
 			}
 		}
