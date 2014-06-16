@@ -525,8 +525,7 @@ key_web_view(GtkWidget *widget, GdkEvent *event, gpointer data)
 	struct Client *c = (struct Client *)data;
 	WebKitHitTestResultContext ht_context;
 	WebKitHitTestResult *ht_result = NULL;
-	gchar *f;
-	char *ht_uri =  NULL;
+	gchar *ht_uri = NULL, *f;
 
 	(void)widget;
 
