@@ -25,10 +25,10 @@ static void changed_load_status(GObject *obj, GParamSpec *pspec,
                                 gpointer data);
 static void changed_title(GObject *, GParamSpec *, gpointer);
 static void changed_uri(GObject *, GParamSpec *, gpointer);
+static gboolean download_handle(WebKitWebView *, WebKitDownload *, gpointer);
 static gboolean download_request(WebKitWebView *, WebKitWebFrame *,
                                  WebKitNetworkRequest *, gchar *,
                                  WebKitWebPolicyDecision *, gpointer);
-static gboolean download_wget(WebKitWebView *, WebKitDownload *, gpointer);
 static gchar *ensure_url_scheme(const gchar *);
 static void grab_environment_configuration(void);
 static void hover_web_view(WebKitWebView *, gchar *, gchar *, gpointer);
@@ -232,7 +232,7 @@ client_new(const gchar *uri)
 	                 "mime-type-policy-decision-requested",
 	                 G_CALLBACK(download_request), NULL);
 	g_signal_connect(G_OBJECT(c->web_view), "download-requested",
-	                 G_CALLBACK(download_wget), NULL);
+	                 G_CALLBACK(download_handle), NULL);
 	g_signal_connect(G_OBJECT(c->web_view), "key-press-event",
 	                 G_CALLBACK(key_web_view), c);
 	g_signal_connect(G_OBJECT(c->web_view), "button-press-event",
@@ -375,6 +375,47 @@ changed_uri(GObject *obj, GParamSpec *pspec, gpointer data)
 }
 
 gboolean
+download_handle(WebKitWebView *web_view, WebKitDownload *download, gpointer data)
+{
+	gchar *path, *path2 = NULL, *uri;
+	gboolean ret;
+	int suffix = 1;
+
+	(void)web_view;
+	(void)data;
+
+	path = g_build_filename(download_dir,
+	                        webkit_download_get_suggested_filename(download),
+	                        NULL);
+	path2 = g_strdup(path);
+	while (g_file_test(path2, G_FILE_TEST_EXISTS) && suffix < 1000)
+	{
+		g_free(path2);
+
+		path2 = g_strdup_printf("%s.%d", path, suffix);
+		suffix++;
+	}
+
+	if (suffix == 1000)
+	{
+		fprintf(stderr, __NAME__": Suffix reached limit for download.\n");
+		ret = FALSE;
+	}
+	else
+	{
+		uri = g_filename_to_uri(path2, NULL, NULL);
+		webkit_download_set_destination_uri(download, uri);
+		ret = TRUE;
+		g_free(uri);
+	}
+
+	g_free(path);
+	g_free(path2);
+
+	return ret;
+}
+
+gboolean
 download_request(WebKitWebView *web_view, WebKitWebFrame *frame,
                  WebKitNetworkRequest *request, gchar *mime_type,
                  WebKitWebPolicyDecision *policy_decision, gpointer data)
@@ -388,44 +429,6 @@ download_request(WebKitWebView *web_view, WebKitWebFrame *frame,
 		webkit_web_policy_decision_download(policy_decision);
 		return TRUE;
 	}
-	return FALSE;
-}
-
-gboolean
-download_wget(WebKitWebView *web_view, WebKitDownload *download, gpointer data)
-{
-	const gchar *uri;
-	char id[16] = "";
-	gint ret;
-
-	(void)web_view;
-	(void)data;
-
-	uri = webkit_download_get_uri(download);
-	if (fork() == 0)
-	{
-		chdir(download_dir);
-		if (embed == 0)
-			ret = execlp("xterm", "xterm", "-hold", "-e", "wget", uri, NULL);
-		else
-		{
-			if (snprintf(id, 16, "%ld", embed) >= 16)
-			{
-				fprintf(stderr, __NAME__": id for xterm embed truncated!\n");
-				exit(EXIT_FAILURE);
-			}
-			ret = execlp("xterm", "xterm", "-hold", "-into", id, "-e", "wget",
-			             uri, NULL);
-		}
-
-		if (ret == -1)
-		{
-			fprintf(stderr, __NAME__": exec'ing xterm for download");
-			perror(" failed");
-			exit(EXIT_FAILURE);
-		}
-	}
-
 	return FALSE;
 }
 
