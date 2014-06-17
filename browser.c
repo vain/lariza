@@ -15,12 +15,11 @@
 static void adblock(WebKitWebView *, WebKitWebFrame *, WebKitWebResource *,
                     WebKitNetworkRequest *, WebKitNetworkResponse *, gpointer);
 static void adblock_load(void);
-static void client_destroy(GtkWidget *, gpointer);
-static void client_new(const gchar *uri);
-static gboolean client_new_request(WebKitWebView *, WebKitWebFrame *,
-                                   WebKitNetworkRequest *,
-                                   WebKitWebNavigationAction *,
-                                   WebKitWebPolicyDecision *, gpointer);
+static void client_destroy(GtkWidget *obj, gpointer data);
+static gboolean client_destroy_request(WebKitWebView *, gpointer);
+static WebKitWebView *client_new(const gchar *uri);
+static WebKitWebView *client_new_request(WebKitWebView *, WebKitWebFrame *,
+                                         gpointer);
 static void cooperation_setup(void);
 static void changed_load_status(GObject *obj, GParamSpec *pspec,
                                 gpointer data);
@@ -141,32 +140,38 @@ client_destroy(GtkWidget *obj, gpointer data)
 	struct Client *c = (struct Client *)data;
 
 	(void)obj;
+	(void)data;
 
-	webkit_web_view_stop_loading(WEBKIT_WEB_VIEW(c->web_view));
-	gtk_widget_destroy(c->web_view);
-	gtk_widget_destroy(c->scroll);
-	gtk_widget_destroy(c->status);
-	gtk_widget_destroy(c->location);
-	gtk_widget_destroy(c->vbox);
-	gtk_widget_destroy(c->win);
 	free(c);
-
 	clients--;
+
 	if (clients == 0)
 		gtk_main_quit();
 }
 
-void
+gboolean
+client_destroy_request(WebKitWebView *web_view, gpointer data)
+{
+	struct Client *c = (struct Client *)data;
+
+	(void)web_view;
+
+	gtk_widget_destroy(c->win);
+
+	return TRUE;
+}
+
+WebKitWebView *
 client_new(const gchar *uri)
 {
 	struct Client *c;
 	gchar *f;
 
-	if (cooperative_instances && !cooperative_alone)
+	if (uri != NULL && cooperative_instances && !cooperative_alone)
 	{
 		write(cooperative_pipe_fp, uri, strlen(uri));
 		write(cooperative_pipe_fp, "\n", 1);
-		return;
+		return NULL;
 	}
 
 	c = malloc(sizeof(struct Client));
@@ -200,8 +205,7 @@ client_new(const gchar *uri)
 	 * to work. This is not needed when using Gtk3. */
 	gtk_window_set_default_size(GTK_WINDOW(c->win), 1024, 768);
 
-	g_signal_connect(G_OBJECT(c->win), "destroy",
-	                 G_CALLBACK(client_destroy), c);
+	g_signal_connect(G_OBJECT(c->win), "destroy", G_CALLBACK(client_destroy), c);
 	gtk_window_set_title(GTK_WINDOW(c->win), __NAME__);
 
 	c->web_view = webkit_web_view_new();
@@ -220,9 +224,10 @@ client_new(const gchar *uri)
 	                 G_CALLBACK(changed_uri), c);
 	g_signal_connect(G_OBJECT(c->web_view), "notify::load-status",
 	                 G_CALLBACK(changed_load_status), c);
-	g_signal_connect(G_OBJECT(c->web_view),
-	                 "new-window-policy-decision-requested",
+	g_signal_connect(G_OBJECT(c->web_view), "create-web-view",
 	                 G_CALLBACK(client_new_request), NULL);
+	g_signal_connect(G_OBJECT(c->web_view), "close-web-view",
+	                 G_CALLBACK(client_destroy_request), c);
 	g_signal_connect(G_OBJECT(c->web_view),
 	                 "mime-type-policy-decision-requested",
 	                 G_CALLBACK(download_request), NULL);
@@ -265,30 +270,28 @@ client_new(const gchar *uri)
 	gtk_widget_grab_focus(c->web_view);
 	gtk_widget_show_all(c->win);
 
-	f = ensure_url_scheme(uri);
-	if (show_all_requests)
-		fprintf(stderr, "====> %s\n", uri);
-	webkit_web_view_load_uri(WEBKIT_WEB_VIEW(c->web_view), f);
-	g_free(f);
+	if (uri != NULL)
+	{
+		f = ensure_url_scheme(uri);
+		if (show_all_requests)
+			fprintf(stderr, "====> %s\n", uri);
+		webkit_web_view_load_uri(WEBKIT_WEB_VIEW(c->web_view), f);
+		g_free(f);
+	}
 
 	clients++;
+
+	return WEBKIT_WEB_VIEW(c->web_view);
 }
 
-gboolean
-client_new_request(WebKitWebView *web_view, WebKitWebFrame *frame,
-                   WebKitNetworkRequest *request,
-                   WebKitWebNavigationAction *navigation_action,
-                   WebKitWebPolicyDecision *policy_decision, gpointer user_data)
+WebKitWebView *
+client_new_request(WebKitWebView *web_view, WebKitWebFrame *frame, gpointer data)
 {
 	(void)web_view;
 	(void)frame;
-	(void)navigation_action;
-	(void)user_data;
+	(void)data;
 
-	webkit_web_policy_decision_ignore(policy_decision);
-	client_new(webkit_network_request_get_uri(request));
-
-	return TRUE;
+	return client_new(NULL);
 }
 
 void
