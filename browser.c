@@ -21,8 +21,8 @@ static WebKitWebView *client_new(const gchar *uri);
 static WebKitWebView *client_new_request(WebKitWebView *, WebKitWebFrame *,
                                          gpointer);
 static void cooperation_setup(void);
-static void changed_load_status(GObject *obj, GParamSpec *pspec,
-                                gpointer data);
+static void changed_load_progress(GObject *obj, GParamSpec *pspec,
+                                  gpointer data);
 static void changed_title(GObject *, GParamSpec *, gpointer);
 static void changed_uri(GObject *, GParamSpec *, gpointer);
 static gboolean download_handle(WebKitWebView *, WebKitDownload *, gpointer);
@@ -45,8 +45,9 @@ struct Client
 {
 	GtkWidget *win;
 	GtkWidget *vbox;
+	GtkWidget *top_box;
 	GtkWidget *location;
-	GtkWidget *status;
+	GtkWidget *progress;
 	GtkWidget *scroll;
 	GtkWidget *web_view;
 };
@@ -222,8 +223,8 @@ client_new(const gchar *uri)
 	                 G_CALLBACK(changed_title), c);
 	g_signal_connect(G_OBJECT(c->web_view), "notify::uri",
 	                 G_CALLBACK(changed_uri), c);
-	g_signal_connect(G_OBJECT(c->web_view), "notify::load-status",
-	                 G_CALLBACK(changed_load_status), c);
+	g_signal_connect(G_OBJECT(c->web_view), "notify::progress",
+	                 G_CALLBACK(changed_load_progress), c);
 	g_signal_connect(G_OBJECT(c->web_view), "create-web-view",
 	                 G_CALLBACK(client_new_request), NULL);
 	g_signal_connect(G_OBJECT(c->web_view), "close-web-view",
@@ -257,13 +258,16 @@ client_new(const gchar *uri)
 	g_signal_connect(G_OBJECT(c->location), "key-press-event",
 	                 G_CALLBACK(key_location), c);
 
-	c->status = gtk_statusbar_new();
-	gtk_statusbar_set_has_resize_grip(GTK_STATUSBAR(c->status), FALSE);
+	c->progress = gtk_progress_bar_new();
+	gtk_progress_bar_set_fraction(GTK_PROGRESS_BAR(c->progress), 0);
+
+	c->top_box = gtk_hbox_new(FALSE, 2);
+	gtk_box_pack_start(GTK_BOX(c->top_box), c->location, TRUE, TRUE, 0);
+	gtk_box_pack_end(GTK_BOX(c->top_box), c->progress, FALSE, TRUE, 0);
 
 	c->vbox = gtk_vbox_new(FALSE, 2);
-	gtk_box_pack_start(GTK_BOX(c->vbox), c->location, FALSE, FALSE, 0);
+	gtk_box_pack_start(GTK_BOX(c->vbox), c->top_box, FALSE, FALSE, 0);
 	gtk_container_add(GTK_CONTAINER(c->vbox), c->scroll);
-	gtk_box_pack_end(GTK_BOX(c->vbox), c->status, FALSE, FALSE, 0);
 
 	gtk_container_add(GTK_CONTAINER(c->win), c->vbox);
 
@@ -328,24 +332,16 @@ cooperation_setup(void)
 }
 
 void
-changed_load_status(GObject *obj, GParamSpec *pspec, gpointer data)
+changed_load_progress(GObject *obj, GParamSpec *pspec, gpointer data)
 {
 	struct Client *c = (struct Client *)data;
+	gdouble p;
 
 	(void)obj;
 	(void)pspec;
 
-	if (webkit_web_view_get_load_status(WEBKIT_WEB_VIEW(c->web_view))
-	    == WEBKIT_LOAD_FINISHED)
-	{
-		gtk_statusbar_pop(GTK_STATUSBAR(c->status), 1);
-		gtk_statusbar_push(GTK_STATUSBAR(c->status), 1, "Finished.");
-	}
-	else
-	{
-		gtk_statusbar_pop(GTK_STATUSBAR(c->status), 1);
-		gtk_statusbar_push(GTK_STATUSBAR(c->status), 1, "Loading...");
-	}
+	p = webkit_web_view_get_progress(WEBKIT_WEB_VIEW(c->web_view));
+	gtk_progress_bar_set_fraction(GTK_PROGRESS_BAR(c->progress), p);
 }
 
 void
@@ -477,9 +473,14 @@ hover_web_view(WebKitWebView *web_view, gchar *title, gchar *uri, gpointer data)
 	(void)web_view;
 	(void)title;
 
-	gtk_statusbar_pop(GTK_STATUSBAR(c->status), 0);
-	if (uri != NULL)
-		gtk_statusbar_push(GTK_STATUSBAR(c->status), 0, uri);
+	if (!gtk_widget_is_focus(c->location))
+	{
+		if (uri == NULL)
+			gtk_entry_set_text(GTK_ENTRY(c->location),
+			                   webkit_web_view_get_uri(WEBKIT_WEB_VIEW(c->web_view)));
+		else
+			gtk_entry_set_text(GTK_ENTRY(c->location), uri);
+	}
 }
 
 gboolean
@@ -586,8 +587,7 @@ key_web_view(GtkWidget *widget, GdkEvent *event, gpointer data)
 		else if (((GdkEventKey *)event)->keyval == GDK_KEY_Escape)
 		{
 			webkit_web_view_stop_loading(WEBKIT_WEB_VIEW(c->web_view));
-			gtk_statusbar_pop(GTK_STATUSBAR(c->status), 1);
-			gtk_statusbar_push(GTK_STATUSBAR(c->status), 1, "Aborted.");
+			gtk_progress_bar_set_fraction(GTK_PROGRESS_BAR(c->progress), 0);
 		}
 	}
 	else if (event->type == GDK_BUTTON_PRESS)
