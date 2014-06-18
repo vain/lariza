@@ -43,13 +43,13 @@ static void usage(void);
 
 struct Client
 {
-	GtkWidget *win;
-	GtkWidget *vbox;
-	GtkWidget *top_box;
 	GtkWidget *location;
 	GtkWidget *progress;
 	GtkWidget *scroll;
+	GtkWidget *top_box;
+	GtkWidget *vbox;
 	GtkWidget *web_view;
+	GtkWidget *win;
 };
 
 
