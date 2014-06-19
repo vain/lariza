@@ -30,6 +30,10 @@ static gboolean download_reset_indicator(gpointer);
 static gboolean download_request(WebKitWebView *, WebKitWebFrame *,
                                  WebKitNetworkRequest *, gchar *,
                                  WebKitWebPolicyDecision *, gpointer);
+static void downloadmanager_cancel(GtkToolButton *, gpointer data);
+static void downloadmanager_progress(GObject *obj, GParamSpec *pspec,
+                                     gpointer data);
+static void downloadmanager_setup(void);
 static gchar *ensure_url_scheme(const gchar *);
 static void grab_environment_configuration(void);
 static void hover_web_view(WebKitWebView *, gchar *, gchar *, gpointer);
@@ -53,6 +57,13 @@ struct Client
 	GtkWidget *web_view;
 	GtkWidget *win;
 };
+
+struct DownloadManager
+{
+	GtkWidget *scroll;
+	GtkWidget *toolbar;
+	GtkWidget *win;
+} dm;
 
 
 static gchar *accepted_language = "en-US";
@@ -383,6 +394,7 @@ download_handle(WebKitWebView *web_view, WebKitDownload *download, gpointer data
 {
 	struct Client *c = (struct Client *)data;
 	gchar *path, *path2 = NULL, *uri;
+	GtkToolItem *tb;
 	gboolean ret;
 	int suffix = 1;
 
@@ -416,6 +428,19 @@ download_handle(WebKitWebView *web_view, WebKitDownload *download, gpointer data
 		gtk_progress_bar_set_fraction(GTK_PROGRESS_BAR(c->status), 1);
 		downloads_indicated++;
 		g_timeout_add(500, download_reset_indicator, c);
+
+		tb = gtk_tool_button_new_from_stock(GTK_STOCK_DELETE);
+		gtk_tool_button_set_label(GTK_TOOL_BUTTON(tb),
+		                          webkit_download_get_suggested_filename(download));
+		gtk_toolbar_insert(GTK_TOOLBAR(dm.toolbar), tb, 0);
+		gtk_widget_show_all(dm.toolbar);
+
+		g_signal_connect(G_OBJECT(download), "notify::progress",
+		                 G_CALLBACK(downloadmanager_progress), tb);
+
+		g_object_ref(download);
+		g_signal_connect(G_OBJECT(tb), "clicked",
+		                 G_CALLBACK(downloadmanager_cancel), download);
 	}
 
 	g_free(path);
@@ -451,6 +476,60 @@ download_request(WebKitWebView *web_view, WebKitWebFrame *frame,
 		return TRUE;
 	}
 	return FALSE;
+}
+
+void
+downloadmanager_cancel(GtkToolButton *tb, gpointer data)
+{
+	WebKitDownload *download = WEBKIT_DOWNLOAD(data);
+
+	webkit_download_cancel(download);
+	g_object_unref(download);
+
+	gtk_widget_destroy(GTK_WIDGET(tb));
+}
+
+void
+downloadmanager_progress(GObject *obj, GParamSpec *pspec, gpointer data)
+{
+	WebKitDownload *download = WEBKIT_DOWNLOAD(obj);
+	GtkToolItem *tb = GTK_TOOL_ITEM(data);
+	gdouble p;
+	gchar *t;
+
+	(void)pspec;
+
+	p = webkit_download_get_progress(download) * 100;
+	t = g_strdup_printf("%s (%.0f%%)",
+	                    webkit_download_get_suggested_filename(download),
+						p);
+	gtk_tool_button_set_label(GTK_TOOL_BUTTON(tb), t);
+	g_free(t);
+}
+
+void
+downloadmanager_setup(void)
+{
+	dm.win = gtk_window_new(GTK_WINDOW_TOPLEVEL);
+	gtk_window_set_type_hint(GTK_WINDOW(dm.win), GDK_WINDOW_TYPE_HINT_DIALOG);
+	gtk_window_set_default_size(GTK_WINDOW(dm.win), 500, 250);
+	gtk_window_set_title(GTK_WINDOW(dm.win), __NAME__" - Download Manager");
+	g_signal_connect(G_OBJECT(dm.win), "delete-event",
+	                 G_CALLBACK(gtk_widget_hide_on_delete), NULL);
+
+	dm.toolbar = gtk_toolbar_new();
+	gtk_orientable_set_orientation(GTK_ORIENTABLE(dm.toolbar),
+	                               GTK_ORIENTATION_VERTICAL);
+	gtk_toolbar_set_style(GTK_TOOLBAR(dm.toolbar), GTK_TOOLBAR_BOTH_HORIZ);
+	gtk_toolbar_set_show_arrow(GTK_TOOLBAR(dm.toolbar), FALSE);
+
+	dm.scroll = gtk_scrolled_window_new(NULL, NULL);
+	gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(dm.scroll),
+	                               GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
+	gtk_scrolled_window_add_with_viewport(GTK_SCROLLED_WINDOW(dm.scroll),
+	                                      dm.toolbar);
+
+	gtk_container_add(GTK_CONTAINER(dm.win), dm.scroll);
 }
 
 gchar *
@@ -545,6 +624,14 @@ key_location(GtkWidget *widget, GdkEvent *event, gpointer data)
 				gtk_entry_set_text(GTK_ENTRY(c->location),
 				                   (t == NULL ? __NAME__ : t));
 				return TRUE;
+			case GDK_KEY_d:
+				if (((GdkEventKey *)event)->state & GDK_CONTROL_MASK)
+				{
+					gtk_widget_show_all(dm.win);
+					return TRUE;
+				}
+				else
+					return FALSE;
 		}
 	}
 
@@ -606,6 +693,9 @@ key_web_view(GtkWidget *widget, GdkEvent *event, gpointer data)
 						fprintf(stderr, "====> %s\n", f);
 					webkit_web_view_load_uri(WEBKIT_WEB_VIEW(c->web_view), f);
 					g_free(f);
+					return TRUE;
+				case GDK_KEY_d:
+					gtk_widget_show_all(dm.win);
 					return TRUE;
 			}
 		}
@@ -770,6 +860,7 @@ main(int argc, char **argv)
 
 	adblock_load();
 	cooperation_setup();
+	downloadmanager_setup();
 
 	if (tabbed_automagic && !(cooperative_instances && !cooperative_alone))
 		embed = tabbed_launch();
