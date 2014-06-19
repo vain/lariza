@@ -134,17 +134,20 @@ adblock_load(void)
 		       == G_IO_STATUS_NORMAL)
 		{
 			g_strstrip(buf);
-			re = g_regex_new(buf,
-			                 G_REGEX_CASELESS | G_REGEX_OPTIMIZE,
-			                 G_REGEX_MATCH_PARTIAL, &err);
-			if (err != NULL)
+			if (buf[0] != '#')
 			{
-				fprintf(stderr, __NAME__": Could not compile regex: %s\n", buf);
-				g_error_free(err);
-				err = NULL;
+				re = g_regex_new(buf,
+				                 G_REGEX_CASELESS | G_REGEX_OPTIMIZE,
+				                 G_REGEX_MATCH_PARTIAL, &err);
+				if (err != NULL)
+				{
+					fprintf(stderr, __NAME__": Could not compile regex: %s\n", buf);
+					g_error_free(err);
+					err = NULL;
+				}
+				else
+					adblock_patterns = g_slist_append(adblock_patterns, re);
 			}
-			adblock_patterns = g_slist_append(adblock_patterns, re);
-
 			g_free(buf);
 		}
 	}
