@@ -13,7 +13,7 @@ Features:
 	- Global content zoom
 	- Pluggability into suckless' tabbed
 	- Built-in downloads
-	- vi-like scrolling (modified by CTRL)
+	- Optimized hotkeys: Left hand on keyboard, right hand on mouse
 	- Searching the current page for a word
 	- Adblock
 	- Support for Flash and Java
