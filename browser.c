@@ -15,14 +15,13 @@
 static void adblock(WebKitWebView *, WebKitWebFrame *, WebKitWebResource *,
                     WebKitNetworkRequest *, WebKitNetworkResponse *, gpointer);
 static void adblock_load(void);
-static void client_destroy(GtkWidget *obj, gpointer data);
+static void client_destroy(GtkWidget *, gpointer);
 static gboolean client_destroy_request(WebKitWebView *, gpointer);
-static WebKitWebView *client_new(const gchar *uri);
+static WebKitWebView *client_new(const gchar *);
 static WebKitWebView *client_new_request(WebKitWebView *, WebKitWebFrame *,
                                          gpointer);
 static void cooperation_setup(void);
-static void changed_load_progress(GObject *obj, GParamSpec *pspec,
-                                  gpointer data);
+static void changed_load_progress(GObject *, GParamSpec *, gpointer);
 static void changed_title(GObject *, GParamSpec *, gpointer);
 static void changed_uri(GObject *, GParamSpec *, gpointer);
 static gboolean download_handle(WebKitWebView *, WebKitDownload *, gpointer);
@@ -31,8 +30,7 @@ static gboolean download_request(WebKitWebView *, WebKitWebFrame *,
                                  WebKitNetworkRequest *, gchar *,
                                  WebKitWebPolicyDecision *, gpointer);
 static void downloadmanager_cancel(GtkToolButton *, gpointer data);
-static void downloadmanager_progress(GObject *obj, GParamSpec *pspec,
-                                     gpointer data);
+static void downloadmanager_progress(GObject *, GParamSpec *, gpointer);
 static void downloadmanager_setup(void);
 static gchar *ensure_url_scheme(const gchar *);
 static void grab_environment_configuration(void);
