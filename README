@@ -8,26 +8,27 @@ A simple web browser using GTK+ 2, GLib and WebKitGTK+.
 
 Features:
 
-	- A WebKit viewport
-	- An input box to change the current URL
-	- Global content zoom
-	- Pluggability into suckless' tabbed
-	- Built-in downloads
-	- Optimized hotkeys: Left hand on keyboard, right hand on mouse
-	- Searching the current page for a word
-	- Keyword based searching (opening "wi foo" will search wikipedia)
-	- Adblock
-	- Support for Flash and Java
-	- Cooperative instances using FIFOs (can be turned off)
+    - A WebKit viewport
+    - An input box to change the URL or to search the current page
+    - Built-in launching of suckless' tabbed
+    - Built-in adblock
+    - Built-in download manager
+    - Optimized hotkeys: Left hand on keyboard, right hand on mouse
+    - Keyword based searching: Opening "wi foo" will search wikipedia
+    - Global content zoom
+    - View source mode
+    - Cooperative instances using FIFOs
+    - Support for Flash and Java
 
 
+==============
 About the name
 ==============
 
 "lariza" stems from a german sentence:
 
-	Alle anderen waren mir zu anstrengend.
-	 l   a         r    i  z  a
+    Alle anderen waren mir zu anstrengend.
+     l   a         r    i  z  a
 
 That phrase basically means: "It was too tiresome to deal with any other
 browser." I couldn't find a simple browser that does just what I need.
@@ -39,6 +40,7 @@ nonsensical behavior anymore.
 So, I wrote my own browser^W WebKit GUI. WebKit does all the dirty work.
 
 
+================================
 What lariza is and what it's not
 ================================
 
@@ -48,7 +50,7 @@ happen if it's a feature that I simply don't need.
 
 Especially, it's very likely that lariza will never have a "follow
 mode" like dwb, luakit or others have. I've used these browsers for
-quite some time and I also used Firefox extensions that add a "follow
+quite some time and I've also used Firefox extensions that add a "follow
 mode". The point is, "follow mode" doesn't work anymore. This was a good
 thing ten years ago. Today, a lot of websites make heavy use of
 JavaScript or hovering. You NEED some kind of pointing device. I found
@@ -63,36 +65,212 @@ persistent storage, nor a plugin system, nor cloud sync, nor bookmarks.
 lariza tries not to exceed 1000 lines of code.
 
 
+========================
 Using lariza with tabbed
 ========================
 
-The order of arguments for lariza doesn't matter. This means you can run
-it like this:
+By default, lariza automatically launches an instance of suckless'
+tabbed.
 
-	$ tabbed -c lariza file:///home/hans/bookmarks.html -z 0.8 -e
+You can turn this feature off (see command line arguments) or you can
+specify a command line argument to embed lariza in an arbitrary
+container (XEMBED). Note that lariza will also automatically embed new
+windows in the same container.
 
-Each new tab will then show your bookmarks and is scaled by a factor of
-0.8.
-
-If "-e" is not specified, lariza will launch tabbed automatically. Note
-that you can't use tabbed's "Ctrl+Shift+Enter" hotkey to open a new tab
-this way (lariza will simply call "tabbed -c -d", so tabbed will know
-nothing about lariza). However, due to lariza's cooperative instances,
-you can simply start lariza a second time and it will create a new tab.
+When using the automatically launched tabbed instance, you can't use
+tabbed's Ctrl + Shift + Return hotkey. This is because tabbed is
+launched with "-d", so it knows nothing about lariza. However, lariza
+provides its own hotkey to launch a new window which will be embedded in
+the same instance of tabbed.
 
 
+=======
+Hotkeys
+=======
+
+Main windows
+
+    When the WebKit viewport is focused:
+
+        Mod1 + q
+            Close the current window.
+
+        Mod1 + w
+            Go to your "homepage" which is the first URL specified on
+            the command line.
+
+        Mod1 + e
+            Open a new window.
+
+        Mod1 + s
+            Toggles "view source mode". This will display the web pages
+            source code. Note that the page will be reloaded (which is
+            annoying but WebKit enforces this).
+
+        Mod1 + r
+            Reload the current page.
+
+        Mod1 + d
+            Open the download manager.
+
+        Mod1 + l
+            Focus the location bar.
+
+        Mod1 + k
+            Focus the location bar and set its text to "/", allowing you
+            to easily initiate a search.
+
+        Mod1 + 2  or  Mod1 + n
+            Repeat the last search (forward).
+
+        Mod1 + 3
+            Repeat the last search (backward).
+
+        Escape
+            Stop loading.
+
+        Middle mouse
+            Open the link under the pointer in a new window.
+
+        Backward / forward (mouse keys 8 and 9)
+            Does the obvious.
+
+        Mod1 + Wheel up  or  Ctrl + Wheel up
+            Increase zoom level of the current page.
+
+        Mod1 + Wheel down  or  Ctrl + Wheel down
+            Decrase zoom level of the current page.
+
+
+    When the location bar is focused:
+
+        Mod1 + q
+            Close the current window.
+
+        Mod1 + d
+            Open the download manager.
+
+        Mod1 + r
+            Reload the current page.
+
+        Mod1 + k
+            Reset the content of the location bar to "/".
+
+        Escape
+            Reset the content of the location bar to the current URL.
+
+        Return
+            "Commit", i.e. begin searching, do a keyword based search or
+            open the URL.
+
+
+Download manager
+
+    Mod1 + q
+        Close the download manager (downloads are not aborted).
+
+
+======================
+Command line arguments
+======================
+
+In addition to the standard arguments of GTK+ 2, lariza knows about the
+following options:
+
+    -e <wid>
+        Embeds the main window and all newly created windows in the
+        window specified by <wid>. The download manager is always a
+        "popup".
+
+    -r
+        Print all navigation requests on STDERR.
+
+    -C
+        Disables cooperative instances.
+
+    -T
+        Disables the automatic launch of suckless' tabbed.
+
+
+=====================
+Environment variables
+=====================
+
+In addition to the standard variables of GTK+ 2, lariza knows about the
+following environment variables:
+
+    LARIZA_ACCEPTED_LANGUAGE
+        In HTTP requests, WebKit sets the "Accepted-Language" header to
+        this value. Defaults to "en-US".
+
+    LARIZA_DOWNLOAD_DIR
+        All downloads are automatically stored in this directory.
+        Defaults to "/tmp".
+
+    LARIZA_FIFO_SUFFIX
+        Cooperative instances are implemented using a named pipe in the
+        file system. The name of this pipe usually is (at least on
+        modern systems following XDG "standards"):
+
+            /var/run/$UID/lariza.fifo-$LARIZA_FIFO_SUFFIX
+
+        $UID is the id of your user. $LARIZA_FIFO_SUFFIX defaults to
+        "main". If you change this variable, you can launch several
+        cooperative instances of lariza.
+
+    LARIZA_ZOOM
+        Zoom level for WebKit viewports. Defaults to 1.0.
+
+
+=======
 Adblock
 =======
 
 lariza has built-in adblock functionality. In each line of
 
-	~/.config/lariza/adblock.black
+    ~/.config/lariza/adblock.black
 
 you can store a regular expression. These expressions match
 case-insensitive and partially, i.e. ".*foo.*" is the same as ".*FOO.*"
 and you can use anchors like "^https?://...".
 
+Lines starting with "#" are ignored.
 
+
+=======================
+Keyword based searching
+=======================
+
+In this file, you can configure keywords and the associated URLs:
+
+    ~/.config/lariza/keywordsearch
+
+Each line has to look like this:
+
+    wi https://en.wikipedia.org/w/index.php?title=Special:Search&search=%s
+
+"wi" is the keyword, so when opening "wi foo", lariza will search in
+Wikipedia. Note the "%s" at the end of the URL: This is where your
+search term will be placed.
+
+Lines starting with "#" are ignored.
+
+
+================
+Download manager
+================
+
+Open the download manager using the appropriate hotkey. A new window
+listing your downloads will appear. Clicking on an item will remove it
+from the list and -- if needed -- cancel the download.
+
+There's no file manager integration (I don't use one), nor does lariza
+delete, overwrite or resume downloads. If a file already exists, it
+won't be touched. Instead, the new file name will have a suffix such as
+".1", ".2", ".3" and so on.
+
+
+====================
 WebKit local storage
 ====================
 
@@ -105,16 +283,27 @@ I have explicitly not turned off the local storage feature in WebKit
 because I don't know if this breaks web applications.
 
 
+============
+Dependencies
+============
+
+lariza needs the following Arch Linux packages:
+
+    - gtk2
+    - webkitgtk2
+
+
+==========
 Literature
 ==========
 
 API references:
 
-	- http://webkitgtk.org/reference/webkitgtk/stable/index.html
-	- https://developer.gnome.org/gtk2/stable/index.html
-	- https://developer.gnome.org/glib/stable/index.html
+    - http://webkitgtk.org/reference/webkitgtk/stable/index.html
+    - https://developer.gnome.org/gtk2/stable/index.html
+    - https://developer.gnome.org/glib/stable/index.html
 
 Regular expressions supported by GRegex, you can use these in your
 adblock patterns:
 
-	- https://developer.gnome.org/glib/stable/glib-regex-syntax.html
+    - https://developer.gnome.org/glib/stable/glib-regex-syntax.html
