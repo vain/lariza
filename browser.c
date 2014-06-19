@@ -146,6 +146,7 @@ adblock_load(void)
 			g_free(buf);
 		}
 	}
+	g_io_channel_shutdown(channel, FALSE, NULL);
 	g_free(path);
 }
 
