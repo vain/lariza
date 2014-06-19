@@ -26,6 +26,7 @@ static void changed_load_progress(GObject *obj, GParamSpec *pspec,
 static void changed_title(GObject *, GParamSpec *, gpointer);
 static void changed_uri(GObject *, GParamSpec *, gpointer);
 static gboolean download_handle(WebKitWebView *, WebKitDownload *, gpointer);
+static gboolean download_reset_indicator(gpointer);
 static gboolean download_request(WebKitWebView *, WebKitWebFrame *,
                                  WebKitNetworkRequest *, gchar *,
                                  WebKitWebPolicyDecision *, gpointer);
@@ -46,6 +47,7 @@ struct Client
 	GtkWidget *location;
 	GtkWidget *progress;
 	GtkWidget *scroll;
+	GtkWidget *status;
 	GtkWidget *top_box;
 	GtkWidget *vbox;
 	GtkWidget *web_view;
@@ -60,6 +62,7 @@ static gboolean cooperative_alone = TRUE;
 static gboolean cooperative_instances = TRUE;
 static int cooperative_pipe_fp = 0;
 static gchar *download_dir = "/tmp";
+static gint downloads_indicated = 0;
 static Window embed = 0;
 static gchar *first_uri = NULL;
 static gdouble global_zoom = 1.0;
@@ -233,7 +236,7 @@ client_new(const gchar *uri)
 	                 "mime-type-policy-decision-requested",
 	                 G_CALLBACK(download_request), NULL);
 	g_signal_connect(G_OBJECT(c->web_view), "download-requested",
-	                 G_CALLBACK(download_handle), NULL);
+	                 G_CALLBACK(download_handle), c);
 	g_signal_connect(G_OBJECT(c->web_view), "key-press-event",
 	                 G_CALLBACK(key_web_view), c);
 	g_signal_connect(G_OBJECT(c->web_view), "button-press-event",
@@ -261,7 +264,12 @@ client_new(const gchar *uri)
 	c->progress = gtk_progress_bar_new();
 	gtk_progress_bar_set_fraction(GTK_PROGRESS_BAR(c->progress), 0);
 
+	c->status = gtk_progress_bar_new();
+	gtk_progress_bar_set_fraction(GTK_PROGRESS_BAR(c->status), 0);
+	gtk_widget_set_size_request(c->status, 20, -1);
+
 	c->top_box = gtk_hbox_new(FALSE, 2);
+	gtk_box_pack_start(GTK_BOX(c->top_box), c->status, FALSE, FALSE, 0);
 	gtk_box_pack_start(GTK_BOX(c->top_box), c->location, TRUE, TRUE, 0);
 	gtk_box_pack_end(GTK_BOX(c->top_box), c->progress, FALSE, TRUE, 0);
 
@@ -373,6 +381,7 @@ changed_uri(GObject *obj, GParamSpec *pspec, gpointer data)
 gboolean
 download_handle(WebKitWebView *web_view, WebKitDownload *download, gpointer data)
 {
+	struct Client *c = (struct Client *)data;
 	gchar *path, *path2 = NULL, *uri;
 	gboolean ret;
 	int suffix = 1;
@@ -403,12 +412,28 @@ download_handle(WebKitWebView *web_view, WebKitDownload *download, gpointer data
 		webkit_download_set_destination_uri(download, uri);
 		ret = TRUE;
 		g_free(uri);
+
+		gtk_progress_bar_set_fraction(GTK_PROGRESS_BAR(c->status), 1);
+		downloads_indicated++;
+		g_timeout_add(500, download_reset_indicator, c);
 	}
 
 	g_free(path);
 	g_free(path2);
 
 	return ret;
+}
+
+gboolean
+download_reset_indicator(gpointer data)
+{
+	struct Client *c = (struct Client *)data;
+
+	downloads_indicated--;
+	if (downloads_indicated == 0)
+		gtk_progress_bar_set_fraction(GTK_PROGRESS_BAR(c->status), 0);
+
+	return FALSE;
 }
 
 gboolean
