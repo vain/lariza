@@ -40,6 +40,8 @@ static void hover_web_view(WebKitWebView *, gchar *, gchar *, gpointer);
 static gboolean key_downloadmanager(GtkWidget *, GdkEvent *, gpointer);
 static gboolean key_location(GtkWidget *, GdkEvent *, gpointer);
 static gboolean key_web_view(GtkWidget *, GdkEvent *, gpointer);
+static void keywords_load(void);
+static gboolean keywords_try_search(WebKitWebView *, const gchar *);
 static gboolean remote_msg(GIOChannel *, GIOCondition, gpointer);
 static void search(gpointer, gint);
 static Window tabbed_launch(void);
@@ -77,6 +79,7 @@ static gint downloads_indicated = 0;
 static Window embed = 0;
 static gchar *first_uri = NULL;
 static gdouble global_zoom = 1.0;
+static GHashTable *keywords = NULL;
 static gboolean language_is_set = FALSE;
 static gchar *search_text = NULL;
 static gboolean show_all_requests = FALSE;
@@ -657,7 +660,7 @@ key_location(GtkWidget *widget, GdkEvent *event, gpointer data)
 						search_text = g_strdup(t + 1);  /* XXX whacky */
 						search(c, 1);
 					}
-					else
+					else if (!keywords_try_search(WEBKIT_WEB_VIEW(c->web_view), t))
 					{
 						f = ensure_url_scheme(t);
 						if (show_all_requests)
@@ -771,6 +774,68 @@ key_web_view(GtkWidget *widget, GdkEvent *event, gpointer data)
 	return FALSE;
 }
 
+void
+keywords_load(void)
+{
+	GError *err = NULL;
+	GIOChannel *channel = NULL;
+	gchar *path = NULL;
+	gchar *buf = NULL;
+	gchar **tokens = NULL;
+
+	keywords = g_hash_table_new(g_str_hash, g_str_equal);
+
+	path = g_build_filename(g_get_user_config_dir(), __NAME__, "keywordsearch",
+	                        NULL);
+	channel = g_io_channel_new_file(path, "r", &err);
+	if (channel != NULL)
+	{
+		while (g_io_channel_read_line(channel, &buf, NULL, NULL, NULL)
+		       == G_IO_STATUS_NORMAL)
+		{
+			g_strstrip(buf);
+			if (buf[0] != '#')
+			{
+				tokens = g_strsplit(buf, " ", 2);
+				if (tokens[0] != NULL && tokens[1] != NULL)
+					g_hash_table_insert(keywords, tokens[0], tokens[1]);
+				else
+					g_strfreev(tokens);
+			}
+			g_free(buf);
+		}
+	}
+	g_io_channel_shutdown(channel, FALSE, NULL);
+	g_free(path);
+}
+
+gboolean
+keywords_try_search(WebKitWebView *web_view, const gchar *t)
+{
+	gboolean ret = FALSE;
+	gchar **tokens = NULL;
+	gchar *val = NULL;
+	gchar *uri = NULL;
+
+	tokens = g_strsplit(t, " ", 2);
+	if (tokens[0] != NULL && tokens[1] != NULL)
+	{
+		val = g_hash_table_lookup(keywords, tokens[0]);
+		if (val != NULL)
+		{
+			uri = g_strdup_printf((gchar *)val, tokens[1]);
+			if (show_all_requests)
+				fprintf(stderr, "====> %s\n", uri);
+			webkit_web_view_load_uri(web_view, uri);
+			g_free(uri);
+			ret = TRUE;
+		}
+	}
+	g_strfreev(tokens);
+
+	return ret;
+}
+
 gboolean
 remote_msg(GIOChannel *channel, GIOCondition condition, gpointer data)
 {
@@ -879,6 +944,7 @@ main(int argc, char **argv)
 		usage();
 
 	adblock_load();
+	keywords_load();
 	cooperation_setup();
 	downloadmanager_setup();
 
