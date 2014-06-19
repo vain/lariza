@@ -256,6 +256,8 @@ client_new(const gchar *uri)
 	                 G_CALLBACK(key_web_view), c);
 	g_signal_connect(G_OBJECT(c->web_view), "button-press-event",
 	                 G_CALLBACK(key_web_view), c);
+	g_signal_connect(G_OBJECT(c->web_view), "scroll-event",
+	                 G_CALLBACK(key_web_view), c);
 	g_signal_connect(G_OBJECT(c->web_view), "hovering-over-link",
 	                 G_CALLBACK(hover_web_view), c);
 	g_signal_connect(G_OBJECT(c->web_view), "resource-request-starting",
@@ -696,6 +698,7 @@ key_web_view(GtkWidget *widget, GdkEvent *event, gpointer data)
 	WebKitHitTestResultContext ht_context;
 	WebKitHitTestResult *ht_result = NULL;
 	gchar *ht_uri = NULL, *f;
+	gfloat z;
 
 	(void)widget;
 
@@ -776,6 +779,32 @@ key_web_view(GtkWidget *widget, GdkEvent *event, gpointer data)
 			case 9:
 				webkit_web_view_go_forward(WEBKIT_WEB_VIEW(c->web_view));
 				return TRUE;
+		}
+	}
+	else if (event->type == GDK_SCROLL)
+	{
+		if (((GdkEventScroll *)event)->state & GDK_MOD1_MASK ||
+		    ((GdkEventScroll *)event)->state & GDK_CONTROL_MASK)
+		{
+			switch (((GdkEventScroll *)event)->direction)
+			{
+				case GDK_SCROLL_UP:
+					z = webkit_web_view_get_zoom_level(WEBKIT_WEB_VIEW(
+					                                             c->web_view));
+					z += 0.1;
+					webkit_web_view_set_zoom_level(WEBKIT_WEB_VIEW(c->web_view),
+					                               z);
+					return TRUE;
+				case GDK_SCROLL_DOWN:
+					z = webkit_web_view_get_zoom_level(WEBKIT_WEB_VIEW(
+					                                             c->web_view));
+					z -= 0.1;
+					webkit_web_view_set_zoom_level(WEBKIT_WEB_VIEW(c->web_view),
+					                               z);
+					return TRUE;
+				default:
+					break;
+			}
 		}
 	}
 
