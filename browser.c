@@ -123,8 +123,7 @@ adblock_load(void)
 	GRegex *re = NULL;
 	GError *err = NULL;
 	GIOChannel *channel = NULL;
-	gchar *path = NULL;
-	gchar *buf = NULL;
+	gchar *path = NULL, *buf = NULL;
 
 	path = g_build_filename(g_get_user_config_dir(), __NAME__, "adblock.black",
 	                        NULL);
@@ -328,8 +327,7 @@ cooperation_setup(void)
 {
 	GIOChannel *towatch;
 	const gchar *e;
-	gchar *fifofilename;
-	gchar *fifopath;
+	gchar *fifofilename, *fifopath;
 
 	e = g_getenv(__NAME_UPPERCASE__"_FIFO_SUFFIX");
 	if (e != NULL)
@@ -816,8 +814,7 @@ keywords_load(void)
 {
 	GError *err = NULL;
 	GIOChannel *channel = NULL;
-	gchar *path = NULL;
-	gchar *buf = NULL;
+	gchar *path = NULL, *buf = NULL;
 	gchar **tokens = NULL;
 
 	keywords = g_hash_table_new(g_str_hash, g_str_equal);
@@ -851,8 +848,7 @@ keywords_try_search(WebKitWebView *web_view, const gchar *t)
 {
 	gboolean ret = FALSE;
 	gchar **tokens = NULL;
-	gchar *val = NULL;
-	gchar *uri = NULL;
+	gchar *val = NULL, *uri = NULL;
 
 	tokens = g_strsplit(t, " ", 2);
 	if (tokens[0] != NULL && tokens[1] != NULL)
