@@ -77,6 +77,7 @@ static int cooperative_pipe_fp = 0;
 static gchar *download_dir = "/tmp";
 static gint downloads_indicated = 0;
 static Window embed = 0;
+static gchar *fifo_suffix = "main";
 static gchar *first_uri = NULL;
 static gdouble global_zoom = 1.0;
 static GHashTable *keywords = NULL;
@@ -329,14 +330,9 @@ void
 cooperation_setup(void)
 {
 	GIOChannel *towatch;
-	const gchar *e;
 	gchar *fifofilename, *fifopath;
 
-	e = g_getenv(__NAME_UPPERCASE__"_FIFO_SUFFIX");
-	if (e != NULL)
-		fifofilename = g_strdup_printf("%s-%s", __NAME__".fifo", e);
-	else
-		fifofilename = g_strdup(__NAME__".fifo");
+	fifofilename = g_strdup_printf("%s-%s", __NAME__".fifo", fifo_suffix);
 	fifopath = g_build_filename(g_get_user_runtime_dir(), fifofilename, NULL);
 	g_free(fifofilename);
 
@@ -580,6 +576,10 @@ grab_environment_configuration(void)
 	e = g_getenv(__NAME_UPPERCASE__"_DOWNLOAD_DIR");
 	if (e != NULL)
 		download_dir = g_strdup(e);
+
+	e = g_getenv(__NAME_UPPERCASE__"_FIFO_SUFFIX");
+	if (e != NULL)
+		fifo_suffix = g_strdup(e);
 
 	e = g_getenv(__NAME_UPPERCASE__"_ZOOM");
 	if (e != NULL)
