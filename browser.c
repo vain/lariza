@@ -21,6 +21,7 @@ static WebKitWebView *client_new(const gchar *);
 static WebKitWebView *client_new_request(WebKitWebView *, WebKitWebFrame *,
                                          gpointer);
 static void cooperation_setup(void);
+static void changed_download_progress(GObject *, GParamSpec *, gpointer);
 static void changed_load_progress(GObject *, GParamSpec *, gpointer);
 static void changed_title(GObject *, GParamSpec *, gpointer);
 static void changed_uri(GObject *, GParamSpec *, gpointer);
@@ -30,7 +31,6 @@ static gboolean download_request(WebKitWebView *, WebKitWebFrame *,
                                  WebKitNetworkRequest *, gchar *,
                                  WebKitWebPolicyDecision *, gpointer);
 static void downloadmanager_cancel(GtkToolButton *, gpointer data);
-static void downloadmanager_progress(GObject *, GParamSpec *, gpointer);
 static void downloadmanager_setup(void);
 static gchar *ensure_url_scheme(const gchar *);
 static void grab_environment_configuration(void);
@@ -345,6 +345,38 @@ cooperation_setup(void)
 }
 
 void
+changed_download_progress(GObject *obj, GParamSpec *pspec, gpointer data)
+{
+	WebKitDownload *download = WEBKIT_DOWNLOAD(obj);
+	GtkToolItem *tb = GTK_TOOL_ITEM(data);
+	gdouble p;
+	const gchar *uri;
+	gchar *t, *filename, *base;
+
+	p = webkit_download_get_progress(download) * 100;
+
+	uri = webkit_download_get_destination_uri(download);
+	filename = g_filename_from_uri(uri, NULL, NULL);
+	if (filename == NULL)
+	{
+		/* This really should not happen because WebKit uses that URI to
+		 * write to a file... */
+		fprintf(stderr, __NAME__": Could not construct file name from URI!\n");
+		t = g_strdup_printf("%s (%.0f%%)",
+		                    webkit_download_get_suggested_filename(download), p);
+	}
+	else
+	{
+		base = g_path_get_basename(filename);
+		t = g_strdup_printf("%s (%.0f%%)", base, p);
+		g_free(filename);
+		g_free(base);
+	}
+	gtk_tool_button_set_label(GTK_TOOL_BUTTON(tb), t);
+	g_free(t);
+}
+
+void
 changed_load_progress(GObject *obj, GParamSpec *pspec, gpointer data)
 {
 	struct Client *c = (struct Client *)data;
@@ -418,7 +450,7 @@ download_handle(WebKitWebView *web_view, WebKitDownload *download, gpointer data
 		gtk_widget_show_all(dm.toolbar);
 
 		g_signal_connect(G_OBJECT(download), "notify::progress",
-		                 G_CALLBACK(downloadmanager_progress), tb);
+		                 G_CALLBACK(changed_download_progress), tb);
 
 		g_object_ref(download);
 		g_signal_connect(G_OBJECT(tb), "clicked",
@@ -465,38 +497,6 @@ downloadmanager_cancel(GtkToolButton *tb, gpointer data)
 	g_object_unref(download);
 
 	gtk_widget_destroy(GTK_WIDGET(tb));
-}
-
-void
-downloadmanager_progress(GObject *obj, GParamSpec *pspec, gpointer data)
-{
-	WebKitDownload *download = WEBKIT_DOWNLOAD(obj);
-	GtkToolItem *tb = GTK_TOOL_ITEM(data);
-	gdouble p;
-	const gchar *uri;
-	gchar *t, *filename, *base;
-
-	p = webkit_download_get_progress(download) * 100;
-
-	uri = webkit_download_get_destination_uri(download);
-	filename = g_filename_from_uri(uri, NULL, NULL);
-	if (filename == NULL)
-	{
-		/* This really should not happen because WebKit uses that URI to
-		 * write to a file... */
-		fprintf(stderr, __NAME__": Could not construct file name from URI!\n");
-		t = g_strdup_printf("%s (%.0f%%)",
-		                    webkit_download_get_suggested_filename(download), p);
-	}
-	else
-	{
-		base = g_path_get_basename(filename);
-		t = g_strdup_printf("%s (%.0f%%)", base, p);
-		g_free(filename);
-		g_free(base);
-	}
-	gtk_tool_button_set_label(GTK_TOOL_BUTTON(tb), t);
-	g_free(t);
 }
 
 void
