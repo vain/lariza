@@ -268,13 +268,13 @@ client_new(const gchar *uri)
 	gtk_progress_bar_set_fraction(GTK_PROGRESS_BAR(c->status), 0);
 	gtk_widget_set_size_request(c->status, 20, -1);
 
-	c->top_box = gtk_hbox_new(FALSE, 2);
-	gtk_box_pack_start(GTK_BOX(c->top_box), c->status, FALSE, FALSE, 0);
+	c->top_box = gtk_hbox_new(FALSE, 0);
+	gtk_box_pack_start(GTK_BOX(c->top_box), c->status, FALSE, FALSE, 2);
 	gtk_box_pack_start(GTK_BOX(c->top_box), c->location, TRUE, TRUE, 0);
-	gtk_box_pack_end(GTK_BOX(c->top_box), c->progress, FALSE, TRUE, 0);
+	gtk_box_pack_end(GTK_BOX(c->top_box), c->progress, FALSE, TRUE, 2);
 
-	c->vbox = gtk_vbox_new(FALSE, 2);
-	gtk_box_pack_start(GTK_BOX(c->vbox), c->top_box, FALSE, FALSE, 0);
+	c->vbox = gtk_vbox_new(FALSE, 0);
+	gtk_box_pack_start(GTK_BOX(c->vbox), c->top_box, FALSE, FALSE, 2);
 	gtk_container_add(GTK_CONTAINER(c->vbox), c->scroll);
 
 	gtk_container_add(GTK_CONTAINER(c->win), c->vbox);
