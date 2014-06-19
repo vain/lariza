@@ -325,9 +325,17 @@ void
 cooperation_setup(void)
 {
 	GIOChannel *towatch;
+	const gchar *e;
+	gchar *fifofilename;
 	gchar *fifopath;
 
-	fifopath = g_build_filename(g_get_user_runtime_dir(), __NAME__".fifo", NULL);
+	e = g_getenv(__NAME_UPPERCASE__"_FIFO_SUFFIX");
+	if (e != NULL)
+		fifofilename = g_strdup_printf("%s-%s", __NAME__".fifo", e);
+	else
+		fifofilename = g_strdup(__NAME__".fifo");
+	fifopath = g_build_filename(g_get_user_runtime_dir(), fifofilename, NULL);
+	g_free(fifofilename);
 
 	if (!g_file_test(fifopath, G_FILE_TEST_EXISTS))
 		mkfifo(fifopath, 0600);
