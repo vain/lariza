@@ -772,7 +772,7 @@ key_web_view(GtkWidget *widget, GdkEvent *event, gpointer data)
 					return TRUE;
 				}
 				g_object_unref(ht_result);
-				return FALSE;
+				break;
 			case 8:
 				webkit_web_view_go_back(WEBKIT_WEB_VIEW(c->web_view));
 				return TRUE;
