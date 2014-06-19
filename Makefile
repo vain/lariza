@@ -1,4 +1,4 @@
-CFLAGS += -Wall -Wextra -O3
+CFLAGS += -Wall -Wextra -Wno-unused-parameter -O3
 __NAME__ = lariza
 __NAME_UPPERCASE__ = `echo $(__NAME__) | sed 's/.*/\U&/'`
 __NAME_CAPITALIZED__ = `echo $(__NAME__) | sed 's/^./\U&\E/'`

@@ -95,12 +95,6 @@ adblock(WebKitWebView *web_view, WebKitWebFrame *frame,
 	GSList *it = adblock_patterns;
 	const gchar *uri;
 
-	(void)web_view;
-	(void)frame;
-	(void)resource;
-	(void)response;
-	(void)data;
-
 	uri = webkit_network_request_get_uri(request);
 	if (show_all_requests)
 		fprintf(stderr, "   -> %s\n", uri);
@@ -161,9 +155,6 @@ client_destroy(GtkWidget *obj, gpointer data)
 {
 	struct Client *c = (struct Client *)data;
 
-	(void)obj;
-	(void)data;
-
 	free(c);
 	clients--;
 
@@ -175,8 +166,6 @@ gboolean
 client_destroy_request(WebKitWebView *web_view, gpointer data)
 {
 	struct Client *c = (struct Client *)data;
-
-	(void)web_view;
 
 	gtk_widget_destroy(c->win);
 
@@ -319,10 +308,6 @@ client_new(const gchar *uri)
 WebKitWebView *
 client_new_request(WebKitWebView *web_view, WebKitWebFrame *frame, gpointer data)
 {
-	(void)web_view;
-	(void)frame;
-	(void)data;
-
 	return client_new(NULL);
 }
 
@@ -367,9 +352,6 @@ changed_load_progress(GObject *obj, GParamSpec *pspec, gpointer data)
 	struct Client *c = (struct Client *)data;
 	gdouble p;
 
-	(void)obj;
-	(void)pspec;
-
 	p = webkit_web_view_get_progress(WEBKIT_WEB_VIEW(c->web_view));
 	gtk_progress_bar_set_fraction(GTK_PROGRESS_BAR(c->progress), p);
 }
@@ -380,9 +362,6 @@ changed_title(GObject *obj, GParamSpec *pspec, gpointer data)
 	const gchar *t;
 	struct Client *c = (struct Client *)data;
 
-	(void)obj;
-	(void)pspec;
-
 	t = webkit_web_view_get_title(WEBKIT_WEB_VIEW(c->web_view));
 	gtk_window_set_title(GTK_WINDOW(c->win), (t == NULL ? __NAME__ : t));
 }
@@ -392,9 +371,6 @@ changed_uri(GObject *obj, GParamSpec *pspec, gpointer data)
 {
 	const gchar *t;
 	struct Client *c = (struct Client *)data;
-
-	(void)obj;
-	(void)pspec;
 
 	t = webkit_web_view_get_uri(WEBKIT_WEB_VIEW(c->web_view));
 	gtk_entry_set_text(GTK_ENTRY(c->location), (t == NULL ? __NAME__ : t));
@@ -408,9 +384,6 @@ download_handle(WebKitWebView *web_view, WebKitDownload *download, gpointer data
 	GtkToolItem *tb;
 	gboolean ret;
 	int suffix = 1;
-
-	(void)web_view;
-	(void)data;
 
 	path = g_build_filename(download_dir,
 	                        webkit_download_get_suggested_filename(download),
@@ -477,10 +450,6 @@ download_request(WebKitWebView *web_view, WebKitWebFrame *frame,
                  WebKitNetworkRequest *request, gchar *mime_type,
                  WebKitWebPolicyDecision *policy_decision, gpointer data)
 {
-	(void)frame;
-	(void)request;
-	(void)data;
-
 	if (!webkit_web_view_can_show_mime_type(web_view, mime_type))
 	{
 		webkit_web_policy_decision_download(policy_decision);
@@ -507,8 +476,6 @@ downloadmanager_progress(GObject *obj, GParamSpec *pspec, gpointer data)
 	GtkToolItem *tb = GTK_TOOL_ITEM(data);
 	gdouble p;
 	gchar *t;
-
-	(void)pspec;
 
 	p = webkit_download_get_progress(download) * 100;
 	t = g_strdup_printf("%s (%.0f%%)",
@@ -591,9 +558,6 @@ hover_web_view(WebKitWebView *web_view, gchar *title, gchar *uri, gpointer data)
 {
 	struct Client *c = (struct Client *)data;
 
-	(void)web_view;
-	(void)title;
-
 	if (!gtk_widget_is_focus(c->location))
 	{
 		if (uri == NULL)
@@ -607,9 +571,6 @@ hover_web_view(WebKitWebView *web_view, gchar *title, gchar *uri, gpointer data)
 gboolean
 key_downloadmanager(GtkWidget *widget, GdkEvent *event, gpointer data)
 {
-	(void)widget;
-	(void)data;
-
 	if (event->type == GDK_KEY_PRESS)
 	{
 		if (((GdkEventKey *)event)->state & GDK_MOD1_MASK)
@@ -632,8 +593,6 @@ key_location(GtkWidget *widget, GdkEvent *event, gpointer data)
 	struct Client *c = (struct Client *)data;
 	const gchar *t;
 	gchar *f;
-
-	(void)widget;
 
 	if (event->type == GDK_KEY_PRESS)
 	{
@@ -701,8 +660,6 @@ key_web_view(GtkWidget *widget, GdkEvent *event, gpointer data)
 	gchar *ht_uri = NULL, *f;
 	gfloat z;
 	gboolean b;
-
-	(void)widget;
 
 	if (event->type == GDK_KEY_PRESS)
 	{
@@ -885,9 +842,6 @@ gboolean
 remote_msg(GIOChannel *channel, GIOCondition condition, gpointer data)
 {
 	gchar *uri = NULL;
-
-	(void)condition;
-	(void)data;
 
 	g_io_channel_read_line(channel, &uri, NULL, NULL, NULL);
 	if (uri)
