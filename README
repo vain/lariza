@@ -189,7 +189,7 @@ following options:
         Disables cooperative instances.
 
     -T
-        Disables the automatic launch of suckless' tabbed.
+        Disables automatic launching of suckless' tabbed.
 
 
 =====================
@@ -216,7 +216,7 @@ following environment variables:
 
         $UID is the id of your user. $LARIZA_FIFO_SUFFIX defaults to
         "main". If you change this variable, you can launch several
-        cooperative instances of lariza.
+        independent cooperative instances of lariza.
 
     LARIZA_ZOOM
         Zoom level for WebKit viewports. Defaults to 1.0.
