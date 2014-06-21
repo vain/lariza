@@ -905,14 +905,12 @@ tabbed_launch(void)
 		return 0;
 	}
 	g_io_channel_read_line(tabbed_stdout_channel, &output, NULL, NULL, NULL);
+	g_io_channel_shutdown(tabbed_stdout_channel, FALSE, NULL);
 	if (output == NULL)
 	{
 		fprintf(stderr, __NAME__": Could not read XID from tabbed\n");
 		return 0;
 	}
-
-	g_io_channel_shutdown(tabbed_stdout_channel, FALSE, NULL);
-
 	g_strstrip(output);
 	plug_into = strtol(output, NULL, 16);
 	g_free(output);
