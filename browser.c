@@ -914,6 +914,8 @@ tabbed_launch(void)
 	g_strstrip(output);
 	plug_into = strtol(output, NULL, 16);
 	g_free(output);
+	if (plug_into == 0)
+		fprintf(stderr, __NAME__": The XID from tabbed is 0\n");
 	return plug_into;
 }
 
