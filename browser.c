@@ -143,8 +143,8 @@ adblock_load(void)
 			}
 			g_free(buf);
 		}
+		g_io_channel_shutdown(channel, FALSE, NULL);
 	}
-	g_io_channel_shutdown(channel, FALSE, NULL);
 	g_free(path);
 }
 
@@ -821,8 +821,8 @@ keywords_load(void)
 			}
 			g_free(buf);
 		}
+		g_io_channel_shutdown(channel, FALSE, NULL);
 	}
-	g_io_channel_shutdown(channel, FALSE, NULL);
 	g_free(path);
 }
 
@@ -899,6 +899,11 @@ tabbed_launch(void)
 	}
 
 	tabbed_stdout_channel = g_io_channel_unix_new(tabbed_stdout);
+	if (tabbed_stdout_channel == NULL)
+	{
+		fprintf(stderr, __NAME__": Could open tabbed's stdout\n");
+		return 0;
+	}
 	g_io_channel_read_line(tabbed_stdout_channel, &output, NULL, NULL, NULL);
 	if (output == NULL)
 	{
