@@ -153,6 +153,9 @@ client_destroy(GtkWidget *obj, gpointer data)
 {
 	struct Client *c = (struct Client *)data;
 
+	g_signal_handlers_disconnect_by_func(G_OBJECT(c->web_view),
+	                                     changed_load_progress, c);
+
 	free(c);
 	clients--;
 
