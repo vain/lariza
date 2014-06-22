@@ -76,7 +76,7 @@ static gchar *download_dir = "/tmp";
 static gint downloads_indicated = 0;
 static Window embed = 0;
 static gchar *fifo_suffix = "main";
-static gchar *first_uri = NULL;
+static gchar *first_uri = "about:blank";
 static gdouble global_zoom = 1.0;
 static GHashTable *keywords = NULL;
 static gboolean language_is_set = FALSE;
@@ -925,7 +925,7 @@ tabbed_launch(void)
 void
 usage(void)
 {
-	fprintf(stderr, "Usage: "__NAME__" [OPTION]... <URI>...\n");
+	fprintf(stderr, "Usage: "__NAME__" [OPTION]... [URI]...\n");
 	exit(EXIT_FAILURE);
 }
 
@@ -961,9 +961,6 @@ main(int argc, char **argv)
 		}
 	}
 
-	if (optind >= argc)
-		usage();
-
 	adblock_load();
 	keywords_load();
 	cooperation_setup();
@@ -972,9 +969,15 @@ main(int argc, char **argv)
 	if (tabbed_automagic && !(cooperative_instances && !cooperative_alone))
 		embed = tabbed_launch();
 
-	first_uri = g_strdup(argv[optind]);
-	for (i = optind; i < argc; i++)
-		client_new(argv[i]);
+	if (optind >= argc)
+		client_new(first_uri);
+	else
+	{
+		first_uri = g_strdup(argv[optind]);
+		for (i = optind; i < argc; i++)
+			client_new(argv[i]);
+	}
+
 	if (!cooperative_instances || cooperative_alone)
 		gtk_main();
 	exit(EXIT_SUCCESS);
