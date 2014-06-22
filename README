@@ -9,7 +9,7 @@ A simple web browser using GTK+ 2, GLib and WebKitGTK+.
 Features:
 
     - A WebKit viewport
-    - An input box to change the URL or to search the current page
+    - An input box to change the URI or to search the current page
     - Built-in launching of suckless' tabbed
     - Built-in adblock
     - Built-in download manager
@@ -96,7 +96,7 @@ Main windows
             Close the current window.
 
         Mod1 + w
-            Go to your "homepage" which is the first URL specified on
+            Go to your "homepage" which is the first URI specified on
             the command line.
 
         Mod1 + e
@@ -157,11 +157,11 @@ Main windows
             Reset the content of the location bar to "/".
 
         Escape
-            Reset the content of the location bar to the current URL.
+            Reset the content of the location bar to the current URI.
 
         Return
             "Commit", i.e. begin searching, do a keyword based search or
-            open the URL.
+            open the URI.
 
 
 Download manager
@@ -195,7 +195,7 @@ following options:
     -T
         Disables automatic launching of suckless' tabbed.
 
-After these options there can be any number of URLs. If no URLs are
+After these options there can be any number of URIs. If no URIs are
 given, about:blank will be opened.
 
 
@@ -248,7 +248,7 @@ Lines starting with "#" are ignored.
 Keyword based searching
 =======================
 
-In this file, you can configure keywords and the associated URLs:
+In this file, you can configure keywords and the associated URIs:
 
     ~/.config/lariza/keywordsearch
 
@@ -257,7 +257,7 @@ Each line has to look like this:
     wi https://en.wikipedia.org/w/index.php?title=Special:Search&search=%s
 
 "wi" is the keyword, so when opening "wi foo", lariza will search in
-Wikipedia. Note the "%s" at the end of the URL: This is where your
+Wikipedia. Note the "%s" at the end of the URI: This is where your
 search term will be placed.
 
 Lines starting with "#" are ignored.

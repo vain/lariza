@@ -32,7 +32,7 @@ static gboolean download_request(WebKitWebView *, WebKitWebFrame *,
                                  WebKitWebPolicyDecision *, gpointer);
 static void downloadmanager_cancel(GtkToolButton *, gpointer data);
 static void downloadmanager_setup(void);
-static gchar *ensure_url_scheme(const gchar *);
+static gchar *ensure_uri_scheme(const gchar *);
 static void grab_environment_configuration(void);
 static void hover_web_view(WebKitWebView *, gchar *, gchar *, gpointer);
 static gboolean key_downloadmanager(GtkWidget *, GdkEvent *, gpointer);
@@ -294,7 +294,7 @@ client_new(const gchar *uri)
 
 	if (uri != NULL)
 	{
-		f = ensure_url_scheme(uri);
+		f = ensure_uri_scheme(uri);
 		if (show_all_requests)
 			fprintf(stderr, "====> %s\n", uri);
 		webkit_web_view_load_uri(WEBKIT_WEB_VIEW(c->web_view), f);
@@ -530,7 +530,7 @@ downloadmanager_setup(void)
 }
 
 gchar *
-ensure_url_scheme(const gchar *t)
+ensure_uri_scheme(const gchar *t)
 {
 	gchar *f;
 
@@ -649,7 +649,7 @@ key_location(GtkWidget *widget, GdkEvent *event, gpointer data)
 					}
 					else if (!keywords_try_search(WEBKIT_WEB_VIEW(c->web_view), t))
 					{
-						f = ensure_url_scheme(t);
+						f = ensure_uri_scheme(t);
 						if (show_all_requests)
 							fprintf(stderr, "====> %s\n", f);
 						webkit_web_view_load_uri(WEBKIT_WEB_VIEW(c->web_view), f);
@@ -688,14 +688,14 @@ key_web_view(GtkWidget *widget, GdkEvent *event, gpointer data)
 					gtk_widget_destroy(c->win);
 					return TRUE;
 				case GDK_KEY_w:  /* home (left hand) */
-					f = ensure_url_scheme(first_uri);
+					f = ensure_uri_scheme(first_uri);
 					if (show_all_requests)
 						fprintf(stderr, "====> %s\n", f);
 					webkit_web_view_load_uri(WEBKIT_WEB_VIEW(c->web_view), f);
 					g_free(f);
 					return TRUE;
 				case GDK_KEY_e:  /* new tab (left hand) */
-					f = ensure_url_scheme(first_uri);
+					f = ensure_uri_scheme(first_uri);
 					if (show_all_requests)
 						fprintf(stderr, "====> %s\n", f);
 					client_new(f);
