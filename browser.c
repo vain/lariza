@@ -223,7 +223,7 @@ client_new(const gchar *uri)
 	c->web_view = webkit_web_view_new();
 
 	/* XXX I really do want to enable this option. However, I get
-	 * reproducable crashes with it enabled. I've seen bug reports from
+	 * reproducible crashes with it enabled. I've seen bug reports from
 	 * 2010 about this... WebKit crashes in libpixman, so maybe it's not
 	 * a WebKit issue.
 	 * Yeah, well. I'll turn it off for now. */
