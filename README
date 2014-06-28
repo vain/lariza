@@ -219,7 +219,7 @@ following environment variables:
         file system. The name of this pipe usually is (at least on
         modern systems following XDG "standards"):
 
-            /var/run/$UID/lariza.fifo-$LARIZA_FIFO_SUFFIX
+            /var/run/user/$UID/lariza.fifo-$LARIZA_FIFO_SUFFIX
 
         $UID is the id of your user. $LARIZA_FIFO_SUFFIX defaults to
         "main". If you change this variable, you can launch several
@@ -283,8 +283,8 @@ WebKit local storage
 
 WebKit does create files in your $XDG_* directories, i.e. ~/.local/share
 or ~/.cache. It's up to you what you want to do with this junk. I remove
-it regularly if no WebKit browser is running. Another option would be to
-change the $XDG_* variables.
+it regularly when no WebKit browser is running. Another option would be
+to change the $XDG_* variables.
 
 I have explicitly not turned off the local storage feature in WebKit
 because I don't know if this breaks web applications.
