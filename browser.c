@@ -594,7 +594,7 @@ key_downloadmanager(GtkWidget *widget, GdkEvent *event, gpointer data)
 		{
 			switch (((GdkEventKey *)event)->keyval)
 			{
-				case GDK_KEY_q:  /* close window (left hand) */
+				case GDK_KEY_d:  /* close window (left hand) */
 					gtk_widget_hide(dm.win);
 					return TRUE;
 			}
