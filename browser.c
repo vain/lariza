@@ -76,8 +76,8 @@ static gchar *download_dir = "/tmp";
 static gint downloads_indicated = 0;
 static Window embed = 0;
 static gchar *fifo_suffix = "main";
-static gchar *first_uri = "about:blank";
 static gdouble global_zoom = 1.0;
+static gchar *home_uri = "about:blank";
 static GHashTable *keywords = NULL;
 static gboolean language_is_set = FALSE;
 static gchar *search_text = NULL;
@@ -565,6 +565,10 @@ grab_environment_configuration(void)
 	if (e != NULL)
 		fifo_suffix = g_strdup(e);
 
+	e = g_getenv(__NAME_UPPERCASE__"_HOME_URI");
+	if (e != NULL)
+		home_uri = g_strdup(e);
+
 	e = g_getenv(__NAME_UPPERCASE__"_ZOOM");
 	if (e != NULL)
 		global_zoom = atof(e);
@@ -688,14 +692,14 @@ key_web_view(GtkWidget *widget, GdkEvent *event, gpointer data)
 					gtk_widget_destroy(c->win);
 					return TRUE;
 				case GDK_KEY_w:  /* home (left hand) */
-					f = ensure_uri_scheme(first_uri);
+					f = ensure_uri_scheme(home_uri);
 					if (show_all_requests)
 						fprintf(stderr, "====> %s\n", f);
 					webkit_web_view_load_uri(WEBKIT_WEB_VIEW(c->web_view), f);
 					g_free(f);
 					return TRUE;
 				case GDK_KEY_e:  /* new tab (left hand) */
-					f = ensure_uri_scheme(first_uri);
+					f = ensure_uri_scheme(home_uri);
 					if (show_all_requests)
 						fprintf(stderr, "====> %s\n", f);
 					client_new(f);
@@ -970,10 +974,9 @@ main(int argc, char **argv)
 		embed = tabbed_launch();
 
 	if (optind >= argc)
-		client_new(first_uri);
+		client_new(home_uri);
 	else
 	{
-		first_uri = g_strdup(argv[optind]);
 		for (i = optind; i < argc; i++)
 			client_new(argv[i]);
 	}

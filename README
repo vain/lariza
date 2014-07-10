@@ -96,8 +96,8 @@ Main windows
             Close the current window.
 
         Mod1 + w
-            Go to your "homepage" which is the first URI specified on
-            the command line.
+            Go to your "homepage". See the environment variable
+            $LARIZA_HOME_URI.
 
         Mod1 + e
             Open a new window.
@@ -196,7 +196,7 @@ following options:
         Disables automatic launching of suckless' tabbed.
 
 After these options there can be any number of URIs. If no URIs are
-given, about:blank will be opened.
+given, $LARIZA_HOME_URI will be opened.
 
 
 =====================
@@ -224,6 +224,11 @@ following environment variables:
         $UID is the id of your user. $LARIZA_FIFO_SUFFIX defaults to
         "main". If you change this variable, you can launch several
         independent cooperative instances of lariza.
+
+    LARIZA_HOME_URI
+        This URI will be opened by pressing the appropriate hotkeys
+        ("homepage" or "new window") and if no URIs are specified on the
+        command line. Defaults to "about:blank".
 
     LARIZA_ZOOM
         Zoom level for WebKit viewports. Defaults to 1.0.
