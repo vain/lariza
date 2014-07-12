@@ -23,6 +23,7 @@ static WebKitWebView *client_new_request(WebKitWebView *, WebKitWebFrame *,
 static void cooperation_setup(void);
 static void changed_download_progress(GObject *, GParamSpec *, gpointer);
 static void changed_load_progress(GObject *, GParamSpec *, gpointer);
+static void changed_load_status(GObject *, GParamSpec *, gpointer);
 static void changed_title(GObject *, GParamSpec *, gpointer);
 static void changed_uri(GObject *, GParamSpec *, gpointer);
 static gboolean download_handle(WebKitWebView *, WebKitDownload *, gpointer);
@@ -44,6 +45,9 @@ static gboolean remote_msg(GIOChannel *, GIOCondition, gpointer);
 static void search(gpointer, gint);
 static Window tabbed_launch(void);
 static void usage(void);
+static void history_load(void);
+static gboolean matchCompletion(GtkEntryCompletion *, const gchar *,
+                                GtkTreeIter *, gpointer);
 
 
 struct Client
@@ -56,6 +60,7 @@ struct Client
 	GtkWidget *vbox;
 	GtkWidget *web_view;
 	GtkWidget *win;
+	GtkEntryCompletion *completion;
 };
 
 struct DownloadManager
@@ -83,7 +88,24 @@ static gboolean language_is_set = FALSE;
 static gchar *search_text = NULL;
 static gboolean show_all_requests = FALSE;
 static gboolean tabbed_automagic = TRUE;
+static GtkListStore *history;
 
+gboolean
+matchCompletion(GtkEntryCompletion *completion, const gchar *key, GtkTreeIter *iter, gpointer user_data)
+{
+	// get current item from the history
+	const gchar *uri, *title;
+	gtk_tree_model_get(GTK_TREE_MODEL(history), iter, 0, &uri, 1, &title, -1);
+	
+	gboolean matchesUri = FALSE, matchesTitle = FALSE;
+	// if uri or title exist, compare them to the input
+	// uri and title are casefolded because key is casefolded either
+	if (uri != NULL)
+		matchesUri = (g_strstr_len(g_utf8_casefold(uri, -1), -1, key) != NULL);
+	if (title != NULL)
+		matchesTitle = (g_strstr_len(g_utf8_casefold(title, -1), -1, key) != NULL);
+	return (matchesUri || matchesTitle);
+}
 
 void
 adblock(WebKitWebView *web_view, WebKitWebFrame *frame,
@@ -146,6 +168,12 @@ adblock_load(void)
 		g_io_channel_shutdown(channel, FALSE, NULL);
 	}
 	g_free(path);
+}
+
+void
+history_load(void)
+{
+	history = gtk_list_store_new(2, G_TYPE_STRING, G_TYPE_STRING);
 }
 
 void
@@ -236,6 +264,8 @@ client_new(const gchar *uri)
 	                 G_CALLBACK(changed_uri), c);
 	g_signal_connect(G_OBJECT(c->web_view), "notify::progress",
 	                 G_CALLBACK(changed_load_progress), c);
+	g_signal_connect(G_OBJECT(c->web_view), "notify::load-status",
+	                 G_CALLBACK(changed_load_status), c);
 	g_signal_connect(G_OBJECT(c->web_view), "create-web-view",
 	                 G_CALLBACK(client_new_request), NULL);
 	g_signal_connect(G_OBJECT(c->web_view), "close-web-view",
@@ -270,6 +300,17 @@ client_new(const gchar *uri)
 	c->location = gtk_entry_new();
 	g_signal_connect(G_OBJECT(c->location), "key-press-event",
 	                 G_CALLBACK(key_location), c);
+	// create completion element and connect it to the entry widget and the history
+	c->completion = gtk_entry_completion_new();
+	gtk_entry_set_completion (GTK_ENTRY(c->location),
+	                          GTK_ENTRY_COMPLETION(c->completion));
+	gtk_entry_completion_set_model(GTK_ENTRY_COMPLETION(c->completion),
+	                               GTK_TREE_MODEL(history));
+	// set the column to search in, the match function and enable automatic completion insert
+	gtk_entry_completion_set_text_column(GTK_ENTRY_COMPLETION(c->completion), 0);
+	gtk_entry_completion_set_match_func(GTK_ENTRY_COMPLETION(c->completion),
+	                                    matchCompletion, NULL, NULL);
+	gtk_entry_completion_set_inline_selection(GTK_ENTRY_COMPLETION(c->completion), TRUE);
 
 	c->progress = gtk_progress_bar_new();
 	gtk_progress_bar_set_fraction(GTK_PROGRESS_BAR(c->progress), 0);
@@ -387,6 +428,47 @@ changed_load_progress(GObject *obj, GParamSpec *pspec, gpointer data)
 
 	p = webkit_web_view_get_progress(WEBKIT_WEB_VIEW(c->web_view));
 	gtk_progress_bar_set_fraction(GTK_PROGRESS_BAR(c->progress), p);
+}
+
+void
+changed_load_status(GObject *obj, GParamSpec *pspec, gpointer data)
+{
+	const gchar *uri, *title, *uriHistory;
+	struct Client *c = (struct Client *)data;
+	WebKitLoadStatus status;
+	GtkTreeIter iter;
+	gboolean valid;
+
+	// get current load-status of web_view
+	status = webkit_web_view_get_load_status(WEBKIT_WEB_VIEW(c->web_view));
+	switch(status)
+	{
+		case WEBKIT_LOAD_COMMITTED:
+			break;
+		case WEBKIT_LOAD_FIRST_VISUALLY_NON_EMPTY_LAYOUT:
+			break;
+		case WEBKIT_LOAD_FINISHED:
+			// add uri and title to history after the web_view finished loading
+			uri = webkit_web_view_get_uri(WEBKIT_WEB_VIEW(c->web_view));
+			title = webkit_web_view_get_title(WEBKIT_WEB_VIEW(c->web_view));
+			valid = gtk_tree_model_get_iter_first(GTK_TREE_MODEL(history), &iter);
+			// iterate over all items in the history
+			while (valid)
+			{
+				// get uri from history item
+				gtk_tree_model_get(GTK_TREE_MODEL(history), &iter, 0, &uriHistory, -1);
+				// if uri is already in the history, we don't add it
+				if (g_ascii_strcasecmp(uri, uriHistory) == 0)
+					return;
+				valid = gtk_tree_model_iter_next(GTK_TREE_MODEL(history), &iter);
+			}
+			// uri was not found in the history, thus we add it
+			gtk_list_store_append(history, &iter);
+			gtk_list_store_set(history, &iter, 0, uri, 1, title, -1);
+			break;
+		default:
+			break;
+	}
 }
 
 void
@@ -967,6 +1049,7 @@ main(int argc, char **argv)
 
 	adblock_load();
 	keywords_load();
+	history_load();
 	cooperation_setup();
 	downloadmanager_setup();
 
