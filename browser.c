@@ -433,10 +433,11 @@ changed_load_progress(GObject *obj, GParamSpec *pspec, gpointer data)
 void
 changed_load_status(GObject *obj, GParamSpec *pspec, gpointer data)
 {
-	const gchar *uri, *title;
+	const gchar *uri, *title, *uriHistory;
 	struct Client *c = (struct Client *)data;
 	WebKitLoadStatus status;
 	GtkTreeIter iter;
+	gboolean valid;
 
 	// get current load-status of web_view
 	status = webkit_web_view_get_load_status(WEBKIT_WEB_VIEW(c->web_view));
@@ -450,8 +451,20 @@ changed_load_status(GObject *obj, GParamSpec *pspec, gpointer data)
 			// add uri and title to history after the web_view finished loading
 			uri = webkit_web_view_get_uri(WEBKIT_WEB_VIEW(c->web_view));
 			title = webkit_web_view_get_title(WEBKIT_WEB_VIEW(c->web_view));
+			valid = gtk_tree_model_get_iter_first(GTK_TREE_MODEL(history), &iter);
+			// iterate over all items in the history
+			while (valid)
+			{
+				// get uri from history item
+				gtk_tree_model_get(GTK_TREE_MODEL(history), &iter, 0, &uriHistory, -1);
+				// if uri is already in the history, we don't add it
+				if (g_ascii_strcasecmp(uri, uriHistory) == 0)
+					return;
+				valid = gtk_tree_model_iter_next(GTK_TREE_MODEL(history), &iter);
+			}
+			// uri was not found in the history, thus we add it
 			gtk_list_store_append(history, &iter);
-			gtk_list_store_set(history, &iter, 0, uri, 1, title, -1); 
+			gtk_list_store_set(history, &iter, 0, uri, 1, title, -1);
 			break;
 		default:
 			break;

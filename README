@@ -10,6 +10,7 @@ Features:
 
     - A WebKit viewport
     - An input box to change the URI or to search the current page
+    - Auto-Completion for the input box based on the browsing history
     - Built-in launching of suckless' tabbed
     - Built-in adblock
     - Built-in download manager
