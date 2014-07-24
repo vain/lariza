@@ -823,8 +823,7 @@ keywords_load(void)
 				tokens = g_strsplit(buf, " ", 2);
 				if (tokens[0] != NULL && tokens[1] != NULL)
 					g_hash_table_insert(keywords, tokens[0], tokens[1]);
-				else
-					g_strfreev(tokens);
+				g_strfreev(tokens);
 			}
 			g_free(buf);
 		}
