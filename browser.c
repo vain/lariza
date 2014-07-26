@@ -83,6 +83,10 @@ static gboolean language_is_set = FALSE;
 static gchar *search_text = NULL;
 static gboolean show_all_requests = FALSE;
 static gboolean tabbed_automagic = TRUE;
+static gchar *user_agent = "Mozilla/5.0 (X11; U; Unix; en-US) "
+                           "AppleWebKit/537.15 (KHTML, like Gecko) "
+                           "Chrome/24.0.1295.0 "
+                           "Safari/537.15 "__NAME_UPPERCASE__"/git";
 
 
 void
@@ -262,6 +266,9 @@ client_new(const gchar *uri)
 		             accepted_language, NULL);
 		language_is_set = TRUE;
 	}
+
+	g_object_set(G_OBJECT(webkit_web_view_get_settings(WEBKIT_WEB_VIEW(c->web_view))),
+	             "user-agent", user_agent, NULL);
 
 	c->scroll = gtk_scrolled_window_new(NULL, NULL);
 
@@ -568,6 +575,10 @@ grab_environment_configuration(void)
 	e = g_getenv(__NAME_UPPERCASE__"_HOME_URI");
 	if (e != NULL)
 		home_uri = g_strdup(e);
+
+	e = g_getenv(__NAME_UPPERCASE__"_USER_AGENT");
+	if (e != NULL)
+		user_agent = g_strdup(e);
 
 	e = g_getenv(__NAME_UPPERCASE__"_ZOOM");
 	if (e != NULL)

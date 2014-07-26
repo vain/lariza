@@ -230,6 +230,10 @@ following environment variables:
         ("homepage" or "new window") and if no URIs are specified on the
         command line. Defaults to "about:blank".
 
+    LARIZA_USER_AGENT
+        Lariza will identify itself with this string. See source code
+        for the default value.
+
     LARIZA_ZOOM
         Zoom level for WebKit viewports. Defaults to 1.0.
 
