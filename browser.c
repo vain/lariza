@@ -86,7 +86,7 @@ static gboolean tabbed_automagic = TRUE;
 static gchar *user_agent = "Mozilla/5.0 (X11; U; Unix; en-US) "
                            "AppleWebKit/537.15 (KHTML, like Gecko) "
                            "Chrome/24.0.1295.0 "
-                           "Safari/537.15 "__NAME_UPPERCASE__"/git";
+                           "Safari/537.15 "__NAME_CAPITALIZED__"/git";
 
 
 void
