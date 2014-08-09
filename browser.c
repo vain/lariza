@@ -789,18 +789,14 @@ key_web_view(GtkWidget *widget, GdkEvent *event, gpointer data)
 			switch (((GdkEventScroll *)event)->direction)
 			{
 				case GDK_SCROLL_UP:
-					z = webkit_web_view_get_zoom_level(WEBKIT_WEB_VIEW(
-					                                             c->web_view));
+					z = webkit_web_view_get_zoom_level(WEBKIT_WEB_VIEW(c->web_view));
 					z += 0.1;
-					webkit_web_view_set_zoom_level(WEBKIT_WEB_VIEW(c->web_view),
-					                               z);
+					webkit_web_view_set_zoom_level(WEBKIT_WEB_VIEW(c->web_view), z);
 					return TRUE;
 				case GDK_SCROLL_DOWN:
-					z = webkit_web_view_get_zoom_level(WEBKIT_WEB_VIEW(
-					                                             c->web_view));
+					z = webkit_web_view_get_zoom_level(WEBKIT_WEB_VIEW(c->web_view));
 					z -= 0.1;
-					webkit_web_view_set_zoom_level(WEBKIT_WEB_VIEW(c->web_view),
-					                               z);
+					webkit_web_view_set_zoom_level(WEBKIT_WEB_VIEW(c->web_view), z);
 					return TRUE;
 				default:
 					break;
