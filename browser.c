@@ -372,8 +372,7 @@ changed_download_progress(GObject *obj, GParamSpec *pspec, gpointer data)
 		/* This really should not happen because WebKit uses that URI to
 		 * write to a file... */
 		fprintf(stderr, __NAME__": Could not construct file name from URI!\n");
-		t = g_strdup_printf("%s (%.0f%%)",
-		                    webkit_download_get_suggested_filename(download), p);
+		t = g_strdup_printf("%s (%.0f%%)", webkit_download_get_uri(download), p);
 	}
 	else
 	{
