@@ -359,11 +359,12 @@ changed_download_progress(GObject *obj, GParamSpec *pspec, gpointer data)
 {
 	WebKitDownload *download = WEBKIT_DOWNLOAD(obj);
 	GtkToolItem *tb = GTK_TOOL_ITEM(data);
-	gdouble p;
+	gdouble p, size_mb;
 	const gchar *uri;
 	gchar *t, *filename, *base;
 
 	p = webkit_download_get_progress(download) * 100;
+	size_mb = webkit_download_get_total_size(download) / 1e6;
 
 	uri = webkit_download_get_destination_uri(download);
 	filename = g_filename_from_uri(uri, NULL, NULL);
@@ -372,12 +373,13 @@ changed_download_progress(GObject *obj, GParamSpec *pspec, gpointer data)
 		/* This really should not happen because WebKit uses that URI to
 		 * write to a file... */
 		fprintf(stderr, __NAME__": Could not construct file name from URI!\n");
-		t = g_strdup_printf("%s (%.0f%%)", webkit_download_get_uri(download), p);
+		t = g_strdup_printf("%s (%.0f%% of %.1f MB)",
+		                    webkit_download_get_uri(download), p, size_mb);
 	}
 	else
 	{
 		base = g_path_get_basename(filename);
-		t = g_strdup_printf("%s (%.0f%%)", base, p);
+		t = g_strdup_printf("%s (%.0f%% of %.1f MB)", base, p, size_mb);
 		g_free(filename);
 		g_free(base);
 	}
