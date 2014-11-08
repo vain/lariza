@@ -6,7 +6,7 @@
 #include <string.h>
 
 #include <gtk/gtk.h>
-#include <gdk/gdkx.h>
+#include <gtk/gtkx.h>
 #include <gdk/gdkkeysyms.h>
 #include <gio/gio.h>
 #include <webkit/webkit.h>
@@ -216,11 +216,6 @@ client_new(const gchar *uri)
 		gtk_window_set_wmclass(GTK_WINDOW(c->win), __NAME__, __NAME_CAPITALIZED__);
 	}
 
-	/* When using Gtk2, it only shows a white area when run in suckless'
-	 * tabbed. It appears we need to set a default window size for this
-	 * to work. This is not needed when using Gtk3. */
-	gtk_window_set_default_size(GTK_WINDOW(c->win), 1024, 768);
-
 	g_signal_connect(G_OBJECT(c->win), "destroy", G_CALLBACK(client_destroy), c);
 	gtk_window_set_title(GTK_WINDOW(c->win), __NAME__);
 
@@ -278,21 +273,24 @@ client_new(const gchar *uri)
 	g_signal_connect(G_OBJECT(c->location), "key-press-event",
 	                 G_CALLBACK(key_location), c);
 
-	c->progress = gtk_progress_bar_new();
-	gtk_progress_bar_set_fraction(GTK_PROGRESS_BAR(c->progress), 0);
+	/* XXX Progress bars don't work/look as intended anymore. Level bars
+	 * are a dirty workaround (kind of). */
+	c->progress = gtk_level_bar_new();
+	gtk_level_bar_set_value(GTK_LEVEL_BAR(c->progress), 0);
+	gtk_widget_set_size_request(c->progress, 100, -1);
 
-	c->status = gtk_progress_bar_new();
-	gtk_progress_bar_set_fraction(GTK_PROGRESS_BAR(c->status), 0);
+	c->status = gtk_level_bar_new();
+	gtk_level_bar_set_value(GTK_LEVEL_BAR(c->status), 0);
 	gtk_widget_set_size_request(c->status, 20, -1);
 
-	c->top_box = gtk_hbox_new(FALSE, 0);
+	c->top_box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
 	gtk_box_pack_start(GTK_BOX(c->top_box), c->status, FALSE, FALSE, 2);
 	gtk_box_pack_start(GTK_BOX(c->top_box), c->location, TRUE, TRUE, 0);
-	gtk_box_pack_end(GTK_BOX(c->top_box), c->progress, FALSE, TRUE, 2);
+	gtk_box_pack_start(GTK_BOX(c->top_box), c->progress, FALSE, FALSE, 2);
 
-	c->vbox = gtk_vbox_new(FALSE, 0);
+	c->vbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
 	gtk_box_pack_start(GTK_BOX(c->vbox), c->top_box, FALSE, FALSE, 2);
-	gtk_container_add(GTK_CONTAINER(c->vbox), c->scroll);
+	gtk_box_pack_start(GTK_BOX(c->vbox), c->scroll, TRUE, TRUE, 2);
 
 	gtk_container_add(GTK_CONTAINER(c->win), c->vbox);
 
@@ -394,7 +392,7 @@ changed_load_progress(GObject *obj, GParamSpec *pspec, gpointer data)
 	gdouble p;
 
 	p = webkit_web_view_get_progress(WEBKIT_WEB_VIEW(c->web_view));
-	gtk_progress_bar_set_fraction(GTK_PROGRESS_BAR(c->progress), p);
+	gtk_level_bar_set_value(GTK_LEVEL_BAR(c->progress), p);
 }
 
 void
@@ -450,7 +448,7 @@ download_handle(WebKitWebView *web_view, WebKitDownload *download, gpointer data
 		ret = TRUE;
 		g_free(uri);
 
-		gtk_progress_bar_set_fraction(GTK_PROGRESS_BAR(c->status), 1);
+		gtk_level_bar_set_value(GTK_LEVEL_BAR(c->status), 1);
 		downloads_indicated++;
 		g_timeout_add(500, download_reset_indicator, c);
 
@@ -481,7 +479,7 @@ download_reset_indicator(gpointer data)
 
 	downloads_indicated--;
 	if (downloads_indicated == 0)
-		gtk_progress_bar_set_fraction(GTK_PROGRESS_BAR(c->status), 0);
+		gtk_level_bar_set_value(GTK_LEVEL_BAR(c->status), 0);
 
 	return FALSE;
 }
@@ -752,7 +750,7 @@ key_web_view(GtkWidget *widget, GdkEvent *event, gpointer data)
 		else if (((GdkEventKey *)event)->keyval == GDK_KEY_Escape)
 		{
 			webkit_web_view_stop_loading(WEBKIT_WEB_VIEW(c->web_view));
-			gtk_progress_bar_set_fraction(GTK_PROGRESS_BAR(c->progress), 0);
+			gtk_level_bar_set_value(GTK_LEVEL_BAR(c->progress), 0);
 		}
 	}
 	else if (event->type == GDK_BUTTON_PRESS)

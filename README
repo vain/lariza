@@ -311,8 +311,8 @@ Dependencies
 
 lariza needs the following Arch Linux packages:
 
-    - gtk2
-    - webkitgtk2
+    - gtk3
+    - webkitgtk (WebKit1 API for GTK+ 3)
 
 
 ==========
@@ -322,7 +322,7 @@ Literature
 API references:
 
     - http://webkitgtk.org/reference/webkitgtk/stable/index.html
-    - https://developer.gnome.org/gtk2/stable/index.html
+    - https://developer.gnome.org/gtk3/stable/index.html
     - https://developer.gnome.org/glib/stable/index.html
 
 Regular expressions supported by GRegex, you can use these in your
