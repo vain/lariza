@@ -4,11 +4,11 @@
                                ==========
 
 
-A simple web browser using GTK+ 2, GLib and WebKitGTK+.
+A simple web browser using GTK+ 3, GLib and WebKit2GTK+.
 
 Features:
 
-    - A WebKit viewport
+    - A WebKit2 viewport
     - An input box to change the URI or to search the current page
     - Built-in launching of suckless' tabbed
     - Built-in adblock
@@ -18,7 +18,7 @@ Features:
     - Global content zoom
     - View source mode
     - Cooperative instances using FIFOs
-    - Support for Flash and Java
+    - Support for Java
 
 
 ==============
@@ -312,7 +312,7 @@ Dependencies
 lariza needs the following Arch Linux packages:
 
     - gtk3
-    - webkitgtk (WebKit1 API for GTK+ 3)
+    - webkit2gtk (WebKit2 API for GTK+ 3)
 
 
 ==========

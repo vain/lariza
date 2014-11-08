@@ -9,7 +9,7 @@ $(__NAME__): browser.c
 		-D__NAME_UPPERCASE__=\"$(__NAME_UPPERCASE__)\" \
 		-D__NAME_CAPITALIZED__=\"$(__NAME_CAPITALIZED__)\" \
 		-o $@ $< \
-		`pkg-config --cflags --libs gtk+-3.0 glib-2.0 webkitgtk-3.0`
+		`pkg-config --cflags --libs gtk+-3.0 glib-2.0 webkit2gtk-4.0`
 
 clean:
 	rm -f $(__NAME__)

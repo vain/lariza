@@ -9,16 +9,18 @@
 #include <gtk/gtkx.h>
 #include <gdk/gdkkeysyms.h>
 #include <gio/gio.h>
-#include <webkit/webkit.h>
+#include <webkit2/webkit2.h>
 
 
+#if 0
 static void adblock(WebKitWebView *, WebKitWebFrame *, WebKitWebResource *,
                     WebKitNetworkRequest *, WebKitNetworkResponse *, gpointer);
 static void adblock_load(void);
+#endif
 static void client_destroy(GtkWidget *, gpointer);
 static gboolean client_destroy_request(WebKitWebView *, gpointer);
 static WebKitWebView *client_new(const gchar *);
-static WebKitWebView *client_new_request(WebKitWebView *, WebKitWebFrame *,
+static WebKitWebView *client_new_request(WebKitWebView *, WebKitNavigationAction *,
                                          gpointer);
 static void cooperation_setup(void);
 static void changed_download_progress(GObject *, GParamSpec *, gpointer);
@@ -27,9 +29,11 @@ static void changed_title(GObject *, GParamSpec *, gpointer);
 static void changed_uri(GObject *, GParamSpec *, gpointer);
 static gboolean download_handle(WebKitWebView *, WebKitDownload *, gpointer);
 static gboolean download_reset_indicator(gpointer);
+/*
 static gboolean download_request(WebKitWebView *, WebKitWebFrame *,
                                  WebKitNetworkRequest *, gchar *,
                                  WebKitWebPolicyDecision *, gpointer);
+								 */
 static void downloadmanager_cancel(GtkToolButton *, gpointer data);
 static void downloadmanager_setup(void);
 static gchar *ensure_uri_scheme(const gchar *);
@@ -89,6 +93,7 @@ static gchar *user_agent = "Mozilla/5.0 (X11; U; Unix; en-US) "
                            "Safari/537.15 "__NAME_CAPITALIZED__"/git";
 
 
+#if 0
 void
 adblock(WebKitWebView *web_view, WebKitWebFrame *frame,
         WebKitWebResource *resource, WebKitNetworkRequest *request,
@@ -151,6 +156,7 @@ adblock_load(void)
 	}
 	g_free(path);
 }
+#endif
 
 void
 client_destroy(GtkWidget *obj, gpointer data)
@@ -181,6 +187,7 @@ WebKitWebView *
 client_new(const gchar *uri)
 {
 	struct Client *c;
+	WebKitWebContext *wc;
 	gchar *f;
 
 	if (uri != NULL && cooperative_instances && !cooperative_alone)
@@ -220,6 +227,7 @@ client_new(const gchar *uri)
 	gtk_window_set_title(GTK_WINDOW(c->win), __NAME__);
 
 	c->web_view = webkit_web_view_new();
+	wc = webkit_web_view_get_context(WEBKIT_WEB_VIEW(c->web_view));
 
 	/* XXX I really do want to enable this option. However, I get
 	 * reproducible crashes with it enabled. I've seen bug reports from
@@ -233,16 +241,18 @@ client_new(const gchar *uri)
 	                 G_CALLBACK(changed_title), c);
 	g_signal_connect(G_OBJECT(c->web_view), "notify::uri",
 	                 G_CALLBACK(changed_uri), c);
-	g_signal_connect(G_OBJECT(c->web_view), "notify::progress",
+	g_signal_connect(G_OBJECT(c->web_view), "notify::estimated-load-progress",
 	                 G_CALLBACK(changed_load_progress), c);
-	g_signal_connect(G_OBJECT(c->web_view), "create-web-view",
+	g_signal_connect(G_OBJECT(c->web_view), "create",
 	                 G_CALLBACK(client_new_request), NULL);
-	g_signal_connect(G_OBJECT(c->web_view), "close-web-view",
+	g_signal_connect(G_OBJECT(c->web_view), "close",
 	                 G_CALLBACK(client_destroy_request), c);
+	/*
 	g_signal_connect(G_OBJECT(c->web_view),
 	                 "mime-type-policy-decision-requested",
 	                 G_CALLBACK(download_request), NULL);
-	g_signal_connect(G_OBJECT(c->web_view), "download-requested",
+	*/
+	g_signal_connect(G_OBJECT(wc), "download-requested",
 	                 G_CALLBACK(download_handle), c);
 	g_signal_connect(G_OBJECT(c->web_view), "key-press-event",
 	                 G_CALLBACK(key_web_view), c);
@@ -252,18 +262,25 @@ client_new(const gchar *uri)
 	                 G_CALLBACK(key_web_view), c);
 	g_signal_connect(G_OBJECT(c->web_view), "hovering-over-link",
 	                 G_CALLBACK(hover_web_view), c);
+	/*
 	g_signal_connect(G_OBJECT(c->web_view), "resource-request-starting",
 	                 G_CALLBACK(adblock), NULL);
+					 */
 
 	if (!language_is_set)
 	{
-		g_object_set(webkit_get_default_session(), "accept-language",
-		             accepted_language, NULL);
+		/* XXX make this pretty */
+		const gchar *languages[2];
+		languages[0] = accepted_language;
+		languages[1] = NULL;
+		webkit_web_context_set_preferred_languages(wc, languages);
 		language_is_set = TRUE;
 	}
 
+	/*
 	g_object_set(G_OBJECT(webkit_web_view_get_settings(WEBKIT_WEB_VIEW(c->web_view))),
 	             "user-agent", user_agent, NULL);
+				 */
 
 	c->scroll = gtk_scrolled_window_new(NULL, NULL);
 
@@ -312,7 +329,8 @@ client_new(const gchar *uri)
 }
 
 WebKitWebView *
-client_new_request(WebKitWebView *web_view, WebKitWebFrame *frame, gpointer data)
+client_new_request(WebKitWebView *web_view,
+                   WebKitNavigationAction *navigation_action, gpointer data)
 {
 	return client_new(NULL);
 }
@@ -356,15 +374,17 @@ void
 changed_download_progress(GObject *obj, GParamSpec *pspec, gpointer data)
 {
 	WebKitDownload *download = WEBKIT_DOWNLOAD(obj);
+	WebKitURIResponse *resp;
 	GtkToolItem *tb = GTK_TOOL_ITEM(data);
 	gdouble p, size_mb;
 	const gchar *uri;
 	gchar *t, *filename, *base;
 
-	p = webkit_download_get_progress(download) * 100;
-	size_mb = webkit_download_get_total_size(download) / 1e6;
+	p = webkit_download_get_estimated_progress(download) * 100;
+	resp = webkit_download_get_response(download);
+	size_mb = webkit_uri_response_get_content_length(resp) / 1e6;
 
-	uri = webkit_download_get_destination_uri(download);
+	uri = webkit_download_get_destination(download);
 	filename = g_filename_from_uri(uri, NULL, NULL);
 	if (filename == NULL)
 	{
@@ -372,7 +392,7 @@ changed_download_progress(GObject *obj, GParamSpec *pspec, gpointer data)
 		 * write to a file... */
 		fprintf(stderr, __NAME__": Could not construct file name from URI!\n");
 		t = g_strdup_printf("%s (%.0f%% of %.1f MB)",
-		                    webkit_download_get_uri(download), p, size_mb);
+		                    webkit_uri_response_get_uri(resp), p, size_mb);
 	}
 	else
 	{
@@ -391,7 +411,7 @@ changed_load_progress(GObject *obj, GParamSpec *pspec, gpointer data)
 	struct Client *c = (struct Client *)data;
 	gdouble p;
 
-	p = webkit_web_view_get_progress(WEBKIT_WEB_VIEW(c->web_view));
+	p = webkit_web_view_get_estimated_load_progress(WEBKIT_WEB_VIEW(c->web_view));
 	gtk_level_bar_set_value(GTK_LEVEL_BAR(c->progress), p);
 }
 
@@ -419,13 +439,15 @@ gboolean
 download_handle(WebKitWebView *web_view, WebKitDownload *download, gpointer data)
 {
 	struct Client *c = (struct Client *)data;
+	WebKitURIResponse *resp;
 	gchar *path, *path2 = NULL, *uri;
 	GtkToolItem *tb;
 	gboolean ret;
 	int suffix = 1;
 
+	resp = webkit_download_get_response(download);
 	path = g_build_filename(download_dir,
-	                        webkit_download_get_suggested_filename(download),
+	                        webkit_uri_response_get_suggested_filename(resp),
 	                        NULL);
 	path2 = g_strdup(path);
 	while (g_file_test(path2, G_FILE_TEST_EXISTS) && suffix < 1000)
@@ -444,7 +466,7 @@ download_handle(WebKitWebView *web_view, WebKitDownload *download, gpointer data
 	else
 	{
 		uri = g_filename_to_uri(path2, NULL, NULL);
-		webkit_download_set_destination_uri(download, uri);
+		webkit_download_set_destination(download, uri);
 		ret = TRUE;
 		g_free(uri);
 
@@ -454,11 +476,11 @@ download_handle(WebKitWebView *web_view, WebKitDownload *download, gpointer data
 
 		tb = gtk_tool_button_new_from_stock(GTK_STOCK_DELETE);
 		gtk_tool_button_set_label(GTK_TOOL_BUTTON(tb),
-		                          webkit_download_get_suggested_filename(download));
+		                          webkit_uri_response_get_suggested_filename(resp));
 		gtk_toolbar_insert(GTK_TOOLBAR(dm.toolbar), tb, 0);
 		gtk_widget_show_all(dm.toolbar);
 
-		g_signal_connect(G_OBJECT(download), "notify::progress",
+		g_signal_connect(G_OBJECT(download), "notify::estimated-progress",
 		                 G_CALLBACK(changed_download_progress), tb);
 
 		g_object_ref(download);
@@ -484,6 +506,7 @@ download_reset_indicator(gpointer data)
 	return FALSE;
 }
 
+/*
 gboolean
 download_request(WebKitWebView *web_view, WebKitWebFrame *frame,
                  WebKitNetworkRequest *request, gchar *mime_type,
@@ -496,6 +519,7 @@ download_request(WebKitWebView *web_view, WebKitWebFrame *frame,
 	}
 	return FALSE;
 }
+*/
 
 void
 downloadmanager_cancel(GtkToolButton *tb, gpointer data)
@@ -719,6 +743,7 @@ key_web_view(GtkWidget *widget, GdkEvent *event, gpointer data)
 					webkit_web_view_reload_bypass_cache(WEBKIT_WEB_VIEW(
 					                                    c->web_view));
 					return TRUE;
+#if 0
 				case GDK_KEY_s:  /* toggle source view (left hand) */
 					b = webkit_web_view_get_view_source_mode(WEBKIT_WEB_VIEW(
 					                                         c->web_view));
@@ -727,6 +752,7 @@ key_web_view(GtkWidget *widget, GdkEvent *event, gpointer data)
 					                                     c->web_view), b);
 					webkit_web_view_reload(WEBKIT_WEB_VIEW(c->web_view));
 					return TRUE;
+#endif
 				case GDK_KEY_d:  /* download manager (left hand) */
 					gtk_widget_show_all(dm.win);
 					return TRUE;
@@ -757,6 +783,7 @@ key_web_view(GtkWidget *widget, GdkEvent *event, gpointer data)
 	{
 		switch (((GdkEventButton *)event)->button)
 		{
+#if 0
 			case 2:
 				ht_result = webkit_web_view_get_hit_test_result(
 				                                   WEBKIT_WEB_VIEW(c->web_view),
@@ -771,6 +798,7 @@ key_web_view(GtkWidget *widget, GdkEvent *event, gpointer data)
 				}
 				g_object_unref(ht_result);
 				break;
+#endif
 			case 8:
 				webkit_web_view_go_back(WEBKIT_WEB_VIEW(c->web_view));
 				return TRUE;
@@ -888,8 +916,10 @@ search(gpointer data, gint direction)
 	if (search_text == NULL)
 		return;
 
+	/*
 	webkit_web_view_search_text(WEBKIT_WEB_VIEW(c->web_view), search_text,
 	                            FALSE, direction == 1, TRUE);
+								*/
 }
 
 Window
@@ -971,7 +1001,7 @@ main(int argc, char **argv)
 		}
 	}
 
-	adblock_load();
+	/*adblock_load();*/
 	keywords_load();
 	cooperation_setup();
 	downloadmanager_setup();
