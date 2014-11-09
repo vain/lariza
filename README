@@ -15,9 +15,39 @@ Features:
     - Optimized hotkeys: Left hand on keyboard, right hand on mouse
     - Keyword based searching: Opening "wi foo" will search wikipedia
     - Global content zoom
-    - View source mode
     - Cooperative instances using FIFOs
     - Support for Java
+
+
+==============================================
+IMPORTANT: Current state of the WebKit2 branch
+==============================================
+
+WebKit1 is essentially dead. Sooner or later, we have to jump to
+WebKit2. See also:
+
+http://blogs.igalia.com/carlosgc/2014/08/01/webkitgtk-2-5-1-good-bye-webkit1/
+
+There's a number of issues on this branch:
+
+    - No adblock support. As stated in commit f1174ff, this has to be
+      implemented as a "WebKit2 web extension". Maybe do this in a
+      project of its own?
+    - Java appears to work but Flash looks very broken. In fact, there's
+      a number of crashes of "WebKitPluginProcess2" when pages using
+      Flash are opened.
+    - "View source" mode is not yet ported. This feature has been
+      removed from WebKit2, so we have to invent some way to re-create
+      this...
+    - There's an annoying border around the WebView widget.
+    - There may be a hell lot of other issues that I have not yet
+      encountered.
+
+However, important issues of the original WebKit1 lariza have been
+fixed:
+
+    - Those pages that crash all WebKit1 browsers do work now.
+    - The "back" button works reliably.
 
 
 ==============
