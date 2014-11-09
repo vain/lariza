@@ -80,10 +80,7 @@ static gboolean language_is_set = FALSE;
 static gchar *search_text = NULL;
 static gboolean show_all_requests = FALSE;
 static gboolean tabbed_automagic = TRUE;
-static gchar *user_agent = "Mozilla/5.0 (X11; U; Unix; en-US) "
-                           "AppleWebKit/537.15 (KHTML, like Gecko) "
-                           "Chrome/24.0.1295.0 "
-                           "Safari/537.15 "__NAME_CAPITALIZED__"/git";
+static gchar *user_agent = NULL;
 
 
 void
@@ -199,10 +196,9 @@ client_new(const gchar *uri)
 		language_is_set = TRUE;
 	}
 
-	/*
-	g_object_set(G_OBJECT(webkit_web_view_get_settings(WEBKIT_WEB_VIEW(c->web_view))),
-	             "user-agent", user_agent, NULL);
-				 */
+	if (user_agent != NULL)
+		g_object_set(G_OBJECT(webkit_web_view_get_settings(WEBKIT_WEB_VIEW(c->web_view))),
+		             "user-agent", user_agent, NULL);
 
 	c->scroll = gtk_scrolled_window_new(NULL, NULL);
 
