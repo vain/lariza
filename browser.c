@@ -12,11 +12,6 @@
 #include <webkit2/webkit2.h>
 
 
-#if 0
-static void adblock(WebKitWebView *, WebKitWebFrame *, WebKitWebResource *,
-                    WebKitNetworkRequest *, WebKitNetworkResponse *, gpointer);
-static void adblock_load(void);
-#endif
 static void client_destroy(GtkWidget *, gpointer);
 static gboolean client_destroy_request(WebKitWebView *, gpointer);
 static WebKitWebView *client_new(const gchar *);
@@ -69,7 +64,6 @@ struct DownloadManager
 
 
 static gchar *accepted_language = "en-US";
-static GSList *adblock_patterns = NULL;
 static gint clients = 0;
 static gboolean cooperative_alone = TRUE;
 static gboolean cooperative_instances = TRUE;
@@ -90,71 +84,6 @@ static gchar *user_agent = "Mozilla/5.0 (X11; U; Unix; en-US) "
                            "Chrome/24.0.1295.0 "
                            "Safari/537.15 "__NAME_CAPITALIZED__"/git";
 
-
-#if 0
-void
-adblock(WebKitWebView *web_view, WebKitWebFrame *frame,
-        WebKitWebResource *resource, WebKitNetworkRequest *request,
-        WebKitNetworkResponse *response, gpointer data)
-{
-	GSList *it = adblock_patterns;
-	const gchar *uri;
-
-	uri = webkit_network_request_get_uri(request);
-	if (show_all_requests)
-		fprintf(stderr, "   -> %s\n", uri);
-
-	while (it)
-	{
-		if (g_regex_match((GRegex *)(it->data), uri, 0, NULL))
-		{
-			webkit_network_request_set_uri(request, "about:blank");
-			if (show_all_requests)
-				fprintf(stderr, "            BLOCKED!\n");
-			return;
-		}
-		it = g_slist_next(it);
-	}
-}
-
-void
-adblock_load(void)
-{
-	GRegex *re = NULL;
-	GError *err = NULL;
-	GIOChannel *channel = NULL;
-	gchar *path = NULL, *buf = NULL;
-
-	path = g_build_filename(g_get_user_config_dir(), __NAME__, "adblock.black",
-	                        NULL);
-	channel = g_io_channel_new_file(path, "r", &err);
-	if (channel != NULL)
-	{
-		while (g_io_channel_read_line(channel, &buf, NULL, NULL, NULL)
-		       == G_IO_STATUS_NORMAL)
-		{
-			g_strstrip(buf);
-			if (buf[0] != '#')
-			{
-				re = g_regex_new(buf,
-				                 G_REGEX_CASELESS | G_REGEX_OPTIMIZE,
-				                 G_REGEX_MATCH_PARTIAL, &err);
-				if (err != NULL)
-				{
-					fprintf(stderr, __NAME__": Could not compile regex: %s\n", buf);
-					g_error_free(err);
-					err = NULL;
-				}
-				else
-					adblock_patterns = g_slist_append(adblock_patterns, re);
-			}
-			g_free(buf);
-		}
-		g_io_channel_shutdown(channel, FALSE, NULL);
-	}
-	g_free(path);
-}
-#endif
 
 void
 client_destroy(GtkWidget *obj, gpointer data)
@@ -257,10 +186,6 @@ client_new(const gchar *uri)
 	                 G_CALLBACK(key_web_view), c);
 	g_signal_connect(G_OBJECT(c->web_view), "hovering-over-link",
 	                 G_CALLBACK(hover_web_view), c);
-	/*
-	g_signal_connect(G_OBJECT(c->web_view), "resource-request-starting",
-	                 G_CALLBACK(adblock), NULL);
-					 */
 
 	if (!language_is_set)
 	{
@@ -1005,7 +930,6 @@ main(int argc, char **argv)
 		}
 	}
 
-	/*adblock_load();*/
 	keywords_load();
 	cooperation_setup();
 	downloadmanager_setup();
