@@ -635,6 +635,7 @@ gboolean
 key_web_view(GtkWidget *widget, GdkEvent *event, gpointer data)
 {
 	struct Client *c = (struct Client *)data;
+	gdouble dx, dy;
 	gchar *f;
 	gfloat z;
 
@@ -711,21 +712,14 @@ key_web_view(GtkWidget *widget, GdkEvent *event, gpointer data)
 		if (((GdkEventScroll *)event)->state & GDK_MOD1_MASK ||
 		    ((GdkEventScroll *)event)->state & GDK_CONTROL_MASK)
 		{
-			switch (((GdkEventScroll *)event)->direction)
-			{
-				case GDK_SCROLL_UP:
-					z = webkit_web_view_get_zoom_level(WEBKIT_WEB_VIEW(c->web_view));
-					z += 0.1;
-					webkit_web_view_set_zoom_level(WEBKIT_WEB_VIEW(c->web_view), z);
-					return TRUE;
-				case GDK_SCROLL_DOWN:
-					z = webkit_web_view_get_zoom_level(WEBKIT_WEB_VIEW(c->web_view));
-					z -= 0.1;
-					webkit_web_view_set_zoom_level(WEBKIT_WEB_VIEW(c->web_view), z);
-					return TRUE;
-				default:
-					break;
-			}
+			gdk_event_get_scroll_deltas(event, &dx, &dy);
+			z = webkit_web_view_get_zoom_level(WEBKIT_WEB_VIEW(c->web_view));
+			if (dy == 1)
+				z += 0.1;
+			else if (dy == -1)
+				z -= 0.1;
+			webkit_web_view_set_zoom_level(WEBKIT_WEB_VIEW(c->web_view), z);
+			return TRUE;
 		}
 	}
 
