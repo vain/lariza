@@ -628,7 +628,7 @@ key_location(GtkWidget *widget, GdkEvent *event, gpointer data)
 						if (search_text != NULL)
 							g_free(search_text);
 						search_text = g_strdup(t + 1);  /* XXX whacky */
-						search(c, 1);
+						search(c, 0);
 					}
 					else if (!keywords_try_search(WEBKIT_WEB_VIEW(c->web_view), t))
 					{
@@ -846,14 +846,27 @@ void
 search(gpointer data, gint direction)
 {
 	struct Client *c = (struct Client *)data;
+	WebKitWebView *web_view = WEBKIT_WEB_VIEW(c->web_view);
+	WebKitFindController *fc = webkit_web_view_get_find_controller(web_view);
 
 	if (search_text == NULL)
 		return;
 
-	/*
-	webkit_web_view_search_text(WEBKIT_WEB_VIEW(c->web_view), search_text,
-	                            FALSE, direction == 1, TRUE);
-								*/
+	switch (direction)
+	{
+		case 0:
+			webkit_find_controller_search(fc, search_text,
+			                              WEBKIT_FIND_OPTIONS_CASE_INSENSITIVE |
+			                              WEBKIT_FIND_OPTIONS_WRAP_AROUND,
+			                              G_MAXUINT);
+			break;
+		case 1:
+			webkit_find_controller_search_next(fc);
+			break;
+		case -1:
+			webkit_find_controller_search_previous(fc);
+			break;
+	}
 }
 
 Window
