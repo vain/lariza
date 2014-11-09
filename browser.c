@@ -402,7 +402,8 @@ download_handle(WebKitDownload *download, gchar *suggested_filename, gpointer da
 		downloads_indicated++;
 		g_timeout_add(500, download_reset_indicator, c);
 
-		tb = gtk_tool_button_new_from_stock(GTK_STOCK_DELETE);
+		tb = gtk_tool_button_new(NULL, NULL);
+		gtk_tool_button_set_icon_name(GTK_TOOL_BUTTON(tb), "gtk-delete");
 		gtk_tool_button_set_label(GTK_TOOL_BUTTON(tb), suggested_filename);
 		gtk_toolbar_insert(GTK_TOOLBAR(dm.toolbar), tb, 0);
 		gtk_widget_show_all(dm.toolbar);
