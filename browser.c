@@ -637,7 +637,6 @@ key_web_view(GtkWidget *widget, GdkEvent *event, gpointer data)
 	struct Client *c = (struct Client *)data;
 	gchar *f;
 	gfloat z;
-	gboolean b;
 
 	if (event->type == GDK_KEY_PRESS)
 	{
@@ -662,16 +661,6 @@ key_web_view(GtkWidget *widget, GdkEvent *event, gpointer data)
 					webkit_web_view_reload_bypass_cache(WEBKIT_WEB_VIEW(
 					                                    c->web_view));
 					return TRUE;
-#if 0
-				case GDK_KEY_s:  /* toggle source view (left hand) */
-					b = webkit_web_view_get_view_source_mode(WEBKIT_WEB_VIEW(
-					                                         c->web_view));
-					b = !b;
-					webkit_web_view_set_view_source_mode(WEBKIT_WEB_VIEW(
-					                                     c->web_view), b);
-					webkit_web_view_reload(WEBKIT_WEB_VIEW(c->web_view));
-					return TRUE;
-#endif
 				case GDK_KEY_d:  /* download manager (left hand) */
 					gtk_widget_show_all(dm.win);
 					return TRUE;

@@ -137,11 +137,6 @@ Main windows
         Mod1 + e
             Open a new window.
 
-        Mod1 + s
-            Toggles "view source mode". This will display the web pages
-            source code. Note that the page will be reloaded (which is
-            annoying but WebKit enforces this).
-
         Mod1 + r
             Reload the current page.
 
