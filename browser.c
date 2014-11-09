@@ -714,10 +714,8 @@ key_web_view(GtkWidget *widget, GdkEvent *event, gpointer data)
 		{
 			gdk_event_get_scroll_deltas(event, &dx, &dy);
 			z = webkit_web_view_get_zoom_level(WEBKIT_WEB_VIEW(c->web_view));
-			if (dy == 1)
-				z += 0.1;
-			else if (dy == -1)
-				z -= 0.1;
+			z += -dy * 0.1;
+			z = dx != 0 ? global_zoom : z;
 			webkit_web_view_set_zoom_level(WEBKIT_WEB_VIEW(c->web_view), z);
 			return TRUE;
 		}

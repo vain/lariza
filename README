@@ -165,11 +165,14 @@ Main windows
         Backward / forward (mouse keys 8 and 9)
             Does the obvious.
 
-        Mod1 + Wheel up  or  Ctrl + Wheel up
+        Mod1 + Scroll up  or  Ctrl + Scroll up
             Increase zoom level of the current page.
 
-        Mod1 + Wheel down  or  Ctrl + Wheel down
+        Mod1 + Scroll down  or  Ctrl + Scroll down
             Decrase zoom level of the current page.
+
+        Mod1 + Scroll horizontally  or  Ctrl + Scroll horizontally
+            Reset zoom to $LARIZA_ZOOM.
 
 
     When the location bar is focused:
