@@ -31,7 +31,7 @@ static void downloadmanager_cancel(GtkToolButton *, gpointer data);
 static void downloadmanager_setup(void);
 static gchar *ensure_uri_scheme(const gchar *);
 static void grab_environment_configuration(void);
-static void hover_web_view(WebKitWebView *, gchar *, gchar *, gpointer);
+static void hover_web_view(WebKitWebView *, WebKitHitTestResult *, guint, gpointer);
 static gboolean key_downloadmanager(GtkWidget *, GdkEvent *, gpointer);
 static gboolean key_location(GtkWidget *, GdkEvent *, gpointer);
 static gboolean key_web_view(GtkWidget *, GdkEvent *, gpointer);
@@ -45,6 +45,7 @@ static void usage(void);
 
 struct Client
 {
+	gchar *hover_uri;
 	GtkWidget *location;
 	GtkWidget *progress;
 	GtkWidget *scroll;
@@ -131,6 +132,7 @@ client_new(const gchar *uri)
 		exit(EXIT_FAILURE);
 	}
 
+	c->hover_uri = NULL;
 	c->win = NULL;
 	if (embed != 0)
 	{
@@ -184,7 +186,7 @@ client_new(const gchar *uri)
 	                 G_CALLBACK(key_web_view), c);
 	g_signal_connect(G_OBJECT(c->web_view), "scroll-event",
 	                 G_CALLBACK(key_web_view), c);
-	g_signal_connect(G_OBJECT(c->web_view), "hovering-over-link",
+	g_signal_connect(G_OBJECT(c->web_view), "mouse-target-changed",
 	                 G_CALLBACK(hover_web_view), c);
 
 	if (!language_is_set)
@@ -538,17 +540,31 @@ grab_environment_configuration(void)
 }
 
 void
-hover_web_view(WebKitWebView *web_view, gchar *title, gchar *uri, gpointer data)
+hover_web_view(WebKitWebView *web_view, WebKitHitTestResult *ht, guint modifiers,
+               gpointer data)
 {
 	struct Client *c = (struct Client *)data;
 
 	if (!gtk_widget_is_focus(c->location))
 	{
-		if (uri == NULL)
+		if (webkit_hit_test_result_context_is_link(ht))
+		{
+			gtk_entry_set_text(GTK_ENTRY(c->location),
+			                   webkit_hit_test_result_get_link_uri(ht));
+
+			if (c->hover_uri != NULL)
+				g_free(c->hover_uri);
+			c->hover_uri = g_strdup(webkit_hit_test_result_get_link_uri(ht));
+		}
+		else
+		{
 			gtk_entry_set_text(GTK_ENTRY(c->location),
 			                   webkit_web_view_get_uri(WEBKIT_WEB_VIEW(c->web_view)));
-		else
-			gtk_entry_set_text(GTK_ENTRY(c->location), uri);
+
+			if (c->hover_uri != NULL)
+				g_free(c->hover_uri);
+			c->hover_uri = NULL;
+		}
 	}
 }
 
@@ -639,9 +655,7 @@ gboolean
 key_web_view(GtkWidget *widget, GdkEvent *event, gpointer data)
 {
 	struct Client *c = (struct Client *)data;
-	WebKitHitTestResultContext ht_context;
-	WebKitHitTestResult *ht_result = NULL;
-	gchar *ht_uri = NULL, *f;
+	gchar *f;
 	gfloat z;
 	gboolean b;
 
@@ -712,22 +726,13 @@ key_web_view(GtkWidget *widget, GdkEvent *event, gpointer data)
 	{
 		switch (((GdkEventButton *)event)->button)
 		{
-#if 0
 			case 2:
-				ht_result = webkit_web_view_get_hit_test_result(
-				                                   WEBKIT_WEB_VIEW(c->web_view),
-				                                       (GdkEventButton *)event);
-				g_object_get(ht_result, "context", &ht_context, NULL);
-				if (ht_context & WEBKIT_HIT_TEST_RESULT_CONTEXT_LINK)
+				if (c->hover_uri != NULL)
 				{
-					g_object_get(ht_result, "link-uri", &ht_uri, NULL);
-					client_new(ht_uri);
-					g_object_unref(ht_result);
+					client_new(c->hover_uri);
 					return TRUE;
 				}
-				g_object_unref(ht_result);
 				break;
-#endif
 			case 8:
 				webkit_web_view_go_back(WEBKIT_WEB_VIEW(c->web_view));
 				return TRUE;
