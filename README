@@ -211,7 +211,7 @@ Usage:
 
     lariza [OPTION]... [URI]...
 
-In addition to the standard arguments of GTK+ 2, lariza knows about the
+In addition to the standard arguments of GTK+ 3, lariza knows about the
 following options:
 
     -e <wid>
@@ -233,7 +233,7 @@ given, $LARIZA_HOME_URI will be opened.
 Environment variables
 =====================
 
-In addition to the standard variables of GTK+ 2, lariza knows about the
+In addition to the standard variables of GTK+ 3, lariza knows about the
 following environment variables:
 
     LARIZA_ACCEPTED_LANGUAGE
