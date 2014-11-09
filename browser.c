@@ -27,13 +27,11 @@ static void changed_download_progress(GObject *, GParamSpec *, gpointer);
 static void changed_load_progress(GObject *, GParamSpec *, gpointer);
 static void changed_title(GObject *, GParamSpec *, gpointer);
 static void changed_uri(GObject *, GParamSpec *, gpointer);
-static gboolean download_handle(WebKitWebView *, WebKitDownload *, gpointer);
+static gboolean decide_policy(WebKitWebView *, WebKitPolicyDecision *,
+                              WebKitPolicyDecisionType, gpointer);
+static gboolean download_handle(WebKitDownload *, gchar *, gpointer);
+static void download_handle_start(WebKitWebView *, WebKitDownload *, gpointer);
 static gboolean download_reset_indicator(gpointer);
-/*
-static gboolean download_request(WebKitWebView *, WebKitWebFrame *,
-                                 WebKitNetworkRequest *, gchar *,
-                                 WebKitWebPolicyDecision *, gpointer);
-								 */
 static void downloadmanager_cancel(GtkToolButton *, gpointer data);
 static void downloadmanager_setup(void);
 static gchar *ensure_uri_scheme(const gchar *);
@@ -247,13 +245,10 @@ client_new(const gchar *uri)
 	                 G_CALLBACK(client_new_request), NULL);
 	g_signal_connect(G_OBJECT(c->web_view), "close",
 	                 G_CALLBACK(client_destroy_request), c);
-	/*
-	g_signal_connect(G_OBJECT(c->web_view),
-	                 "mime-type-policy-decision-requested",
-	                 G_CALLBACK(download_request), NULL);
-	*/
-	g_signal_connect(G_OBJECT(wc), "download-requested",
-	                 G_CALLBACK(download_handle), c);
+	g_signal_connect(G_OBJECT(c->web_view), "decide-policy",
+	                 G_CALLBACK(decide_policy), NULL);
+	g_signal_connect(G_OBJECT(wc), "download-started",
+	                 G_CALLBACK(download_handle_start), c);
 	g_signal_connect(G_OBJECT(c->web_view), "key-press-event",
 	                 G_CALLBACK(key_web_view), c);
 	g_signal_connect(G_OBJECT(c->web_view), "button-press-event",
@@ -436,19 +431,44 @@ changed_uri(GObject *obj, GParamSpec *pspec, gpointer data)
 }
 
 gboolean
-download_handle(WebKitWebView *web_view, WebKitDownload *download, gpointer data)
+decide_policy(WebKitWebView *web_view, WebKitPolicyDecision *decision,
+              WebKitPolicyDecisionType type, gpointer data)
+{
+	WebKitResponsePolicyDecision *r;
+
+	switch (type)
+	{
+		case WEBKIT_POLICY_DECISION_TYPE_RESPONSE:
+			r = WEBKIT_RESPONSE_POLICY_DECISION(decision);
+			if (!webkit_response_policy_decision_is_mime_type_supported(r))
+				webkit_policy_decision_download(decision);
+			else
+				webkit_policy_decision_use(decision);
+			break;
+		default:
+			/* Use whatever default there is. */
+			return FALSE;
+	}
+	return TRUE;
+}
+
+void
+download_handle_start(WebKitWebView *web_view, WebKitDownload *download,
+                      gpointer data)
+{
+	g_signal_connect(G_OBJECT(download), "decide-destination",
+	                 G_CALLBACK(download_handle), data);
+}
+
+gboolean
+download_handle(WebKitDownload *download, gchar *suggested_filename, gpointer data)
 {
 	struct Client *c = (struct Client *)data;
-	WebKitURIResponse *resp;
 	gchar *path, *path2 = NULL, *uri;
 	GtkToolItem *tb;
-	gboolean ret;
 	int suffix = 1;
 
-	resp = webkit_download_get_response(download);
-	path = g_build_filename(download_dir,
-	                        webkit_uri_response_get_suggested_filename(resp),
-	                        NULL);
+	path = g_build_filename(download_dir, suggested_filename, NULL);
 	path2 = g_strdup(path);
 	while (g_file_test(path2, G_FILE_TEST_EXISTS) && suffix < 1000)
 	{
@@ -461,13 +481,12 @@ download_handle(WebKitWebView *web_view, WebKitDownload *download, gpointer data
 	if (suffix == 1000)
 	{
 		fprintf(stderr, __NAME__": Suffix reached limit for download.\n");
-		ret = FALSE;
+		webkit_download_cancel(download);
 	}
 	else
 	{
 		uri = g_filename_to_uri(path2, NULL, NULL);
 		webkit_download_set_destination(download, uri);
-		ret = TRUE;
 		g_free(uri);
 
 		gtk_level_bar_set_value(GTK_LEVEL_BAR(c->status), 1);
@@ -475,8 +494,7 @@ download_handle(WebKitWebView *web_view, WebKitDownload *download, gpointer data
 		g_timeout_add(500, download_reset_indicator, c);
 
 		tb = gtk_tool_button_new_from_stock(GTK_STOCK_DELETE);
-		gtk_tool_button_set_label(GTK_TOOL_BUTTON(tb),
-		                          webkit_uri_response_get_suggested_filename(resp));
+		gtk_tool_button_set_label(GTK_TOOL_BUTTON(tb), suggested_filename);
 		gtk_toolbar_insert(GTK_TOOLBAR(dm.toolbar), tb, 0);
 		gtk_widget_show_all(dm.toolbar);
 
@@ -491,7 +509,8 @@ download_handle(WebKitWebView *web_view, WebKitDownload *download, gpointer data
 	g_free(path);
 	g_free(path2);
 
-	return ret;
+	/* Propagate -- to whom it may concern. */
+	return FALSE;
 }
 
 gboolean
@@ -505,21 +524,6 @@ download_reset_indicator(gpointer data)
 
 	return FALSE;
 }
-
-/*
-gboolean
-download_request(WebKitWebView *web_view, WebKitWebFrame *frame,
-                 WebKitNetworkRequest *request, gchar *mime_type,
-                 WebKitWebPolicyDecision *policy_decision, gpointer data)
-{
-	if (!webkit_web_view_can_show_mime_type(web_view, mime_type))
-	{
-		webkit_web_policy_decision_download(policy_decision);
-		return TRUE;
-	}
-	return FALSE;
-}
-*/
 
 void
 downloadmanager_cancel(GtkToolButton *tb, gpointer data)
