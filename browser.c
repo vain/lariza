@@ -64,7 +64,7 @@ struct DownloadManager
 } dm;
 
 
-static gchar *accepted_language = "en-US";
+static const gchar *accepted_language[2] = { NULL, NULL };
 static gint clients = 0;
 static gboolean cooperative_alone = TRUE;
 static gboolean cooperative_instances = TRUE;
@@ -185,13 +185,9 @@ client_new(const gchar *uri)
 	g_signal_connect(G_OBJECT(c->web_view), "mouse-target-changed",
 	                 G_CALLBACK(hover_web_view), c);
 
-	if (!language_is_set)
+	if (!language_is_set && accepted_language[0] != NULL)
 	{
-		/* XXX make this pretty */
-		const gchar *languages[2];
-		languages[0] = accepted_language;
-		languages[1] = NULL;
-		webkit_web_context_set_preferred_languages(wc, languages);
+		webkit_web_context_set_preferred_languages(wc, accepted_language);
 		language_is_set = TRUE;
 	}
 
@@ -509,7 +505,7 @@ grab_environment_configuration(void)
 
 	e = g_getenv(__NAME_UPPERCASE__"_ACCEPTED_LANGUAGE");
 	if (e != NULL)
-		accepted_language = g_strdup(e);
+		accepted_language[0] = g_strdup(e);
 
 	e = g_getenv(__NAME_UPPERCASE__"_DOWNLOAD_DIR");
 	if (e != NULL)
