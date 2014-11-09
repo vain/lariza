@@ -191,9 +191,6 @@ following options:
         window specified by <wid>. The download manager is always a
         "popup".
 
-    -r
-        Print all navigation requests on STDERR.
-
     -C
         Disables cooperative instances.
 

@@ -78,7 +78,6 @@ static gchar *home_uri = "about:blank";
 static GHashTable *keywords = NULL;
 static gboolean language_is_set = FALSE;
 static gchar *search_text = NULL;
-static gboolean show_all_requests = FALSE;
 static gboolean tabbed_automagic = TRUE;
 static gchar *user_agent = NULL;
 
@@ -235,8 +234,6 @@ client_new(const gchar *uri)
 	if (uri != NULL)
 	{
 		f = ensure_uri_scheme(uri);
-		if (show_all_requests)
-			fprintf(stderr, "====> %s\n", uri);
 		webkit_web_view_load_uri(WEBKIT_WEB_VIEW(c->web_view), f);
 		g_free(f);
 	}
@@ -629,8 +626,6 @@ key_location(GtkWidget *widget, GdkEvent *event, gpointer data)
 					else if (!keywords_try_search(WEBKIT_WEB_VIEW(c->web_view), t))
 					{
 						f = ensure_uri_scheme(t);
-						if (show_all_requests)
-							fprintf(stderr, "====> %s\n", f);
 						webkit_web_view_load_uri(WEBKIT_WEB_VIEW(c->web_view), f);
 						g_free(f);
 					}
@@ -666,15 +661,11 @@ key_web_view(GtkWidget *widget, GdkEvent *event, gpointer data)
 					return TRUE;
 				case GDK_KEY_w:  /* home (left hand) */
 					f = ensure_uri_scheme(home_uri);
-					if (show_all_requests)
-						fprintf(stderr, "====> %s\n", f);
 					webkit_web_view_load_uri(WEBKIT_WEB_VIEW(c->web_view), f);
 					g_free(f);
 					return TRUE;
 				case GDK_KEY_e:  /* new tab (left hand) */
 					f = ensure_uri_scheme(home_uri);
-					if (show_all_requests)
-						fprintf(stderr, "====> %s\n", f);
 					client_new(f);
 					g_free(f);
 					return TRUE;
@@ -811,8 +802,6 @@ keywords_try_search(WebKitWebView *web_view, const gchar *t)
 		if (val != NULL)
 		{
 			uri = g_strdup_printf((gchar *)val, tokens[1]);
-			if (show_all_requests)
-				fprintf(stderr, "====> %s\n", uri);
 			webkit_web_view_load_uri(web_view, uri);
 			g_free(uri);
 			ret = TRUE;
@@ -922,16 +911,13 @@ main(int argc, char **argv)
 
 	grab_environment_configuration();
 
-	while ((opt = getopt(argc, argv, "e:rCT")) != -1)
+	while ((opt = getopt(argc, argv, "e:CT")) != -1)
 	{
 		switch (opt)
 		{
 			case 'e':
 				embed = atol(optarg);
 				tabbed_automagic = FALSE;
-				break;
-			case 'r':
-				show_all_requests = TRUE;
 				break;
 			case 'C':
 				cooperative_instances = FALSE;
