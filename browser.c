@@ -154,13 +154,6 @@ client_new(const gchar *uri)
 	c->web_view = webkit_web_view_new();
 	wc = webkit_web_view_get_context(WEBKIT_WEB_VIEW(c->web_view));
 
-	/* XXX I really do want to enable this option. However, I get
-	 * reproducible crashes with it enabled. I've seen bug reports from
-	 * 2010 about this... WebKit crashes in libpixman, so maybe it's not
-	 * a WebKit issue.
-	 * Yeah, well. I'll turn it off for now. */
-	/*webkit_web_view_set_full_content_zoom(WEBKIT_WEB_VIEW(c->web_view), TRUE);*/
-
 	webkit_web_view_set_zoom_level(WEBKIT_WEB_VIEW(c->web_view), global_zoom);
 	g_signal_connect(G_OBJECT(c->web_view), "notify::title",
 	                 G_CALLBACK(changed_title), c);
