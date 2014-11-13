@@ -16,7 +16,7 @@ Features:
     - Keyword based searching: Opening "wi foo" will search wikipedia
     - Global content zoom
     - Cooperative instances using FIFOs
-    - Support for Java
+    - Support for Flash and Java
 
 
 ==============================================
@@ -33,9 +33,6 @@ There's a number of issues on this branch:
     - No adblock support. As stated in commit f1174ff, this has to be
       implemented as a "WebKit2 web extension". Maybe do this in a
       project of its own?
-    - Java appears to work but Flash looks very broken. In fact, there's
-      a number of crashes of "WebKitPluginProcess2" when pages using
-      Flash are opened.
     - "View source" mode is not yet ported. This feature has been
       removed from WebKit2, so we have to invent some way to re-create
       this...
