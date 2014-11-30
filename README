@@ -261,6 +261,10 @@ following environment variables:
         Lariza will identify itself with this string. Uses WebKit's
         default value if unset.
 
+    LARIZA_WEB_EXTENSIONS_DIR
+        Sets the directory where WebKit will look for "web extensions".
+        Defaults to "~/.local/share/lariza/web_extensions".
+
     LARIZA_ZOOM
         Zoom level for WebKit viewports. Defaults to 1.0.
 
