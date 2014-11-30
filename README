@@ -17,6 +17,8 @@ Features:
     - Global content zoom
     - Cooperative instances using FIFOs
     - Support for Flash and Java
+    - Bundled web extensions:
+        - Adblock
 
 
 ==============================================
@@ -30,9 +32,6 @@ http://blogs.igalia.com/carlosgc/2014/08/01/webkitgtk-2-5-1-good-bye-webkit1/
 
 There's a number of issues on this branch:
 
-    - No adblock support. As stated in commit f1174ff, this has to be
-      implemented as a "WebKit2 web extension". Maybe do this in a
-      project of its own?
     - "View source" mode is not yet ported. This feature has been
       removed from WebKit2, so we have to invent some way to re-create
       this...
@@ -302,6 +301,35 @@ won't be touched. Instead, the new file name will have a suffix such as
 ".1", ".2", ".3" and so on.
 
 
+======================
+Bundled web extensions
+======================
+
+On startup, WebKit checks ~/.local/share/lariza/web_extensions for any
+.so files. See this blog post for further information on these
+extensions:
+
+http://blogs.igalia.com/carlosgc/2013/09/10/webkit2gtk-web-process-extensions/
+
+lariza comes with the following extensions:
+
+    we_adblock.so
+
+        Generic adblock. Reads patterns from the following file:
+
+            ~/.config/lariza/adblock.black
+
+        Each line can contain a regular expression. These expressions
+        match case-insensitive and partially, i.e. ".*foo.*" is the same
+        as ".*FOO.*" and you can use anchors like "^https?://...".
+
+        Lines starting with "#" are ignored.
+
+Those bundled web extensions are automatically compiled when you run
+make. To use them, though, make sure to copy them to the directory
+mentioned above.
+
+
 ====================
 WebKit local storage
 ====================
@@ -334,3 +362,8 @@ API references:
     - http://webkitgtk.org/reference/webkit2gtk/stable/index.html
     - https://developer.gnome.org/gtk3/stable/index.html
     - https://developer.gnome.org/glib/stable/index.html
+
+Regular expressions supported by GRegex, you can use these in your
+adblock patterns:
+
+    - https://developer.gnome.org/glib/stable/glib-regex-syntax.html
