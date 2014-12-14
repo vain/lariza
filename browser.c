@@ -397,7 +397,7 @@ download_handle(WebKitDownload *download, gchar *suggested_filename, gpointer da
 		gtk_tool_button_set_icon_name(GTK_TOOL_BUTTON(tb), "gtk-delete");
 		gtk_tool_button_set_label(GTK_TOOL_BUTTON(tb), suggested_filename);
 		gtk_toolbar_insert(GTK_TOOLBAR(dm.toolbar), tb, 0);
-		gtk_widget_show_all(dm.toolbar);
+		gtk_widget_show_all(dm.win);
 
 		g_signal_connect(G_OBJECT(download), "notify::estimated-progress",
 		                 G_CALLBACK(changed_download_progress), tb);
