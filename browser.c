@@ -26,7 +26,6 @@ static gboolean decide_policy(WebKitWebView *, WebKitPolicyDecision *,
                               WebKitPolicyDecisionType, gpointer);
 static gboolean download_handle(WebKitDownload *, gchar *, gpointer);
 static void download_handle_start(WebKitWebView *, WebKitDownload *, gpointer);
-static gboolean download_reset_indicator(gpointer);
 static void downloadmanager_cancel(GtkToolButton *, gpointer data);
 static void downloadmanager_setup(void);
 static gchar *ensure_uri_scheme(const gchar *);
@@ -49,7 +48,6 @@ struct Client
 	GtkWidget *location;
 	GtkWidget *progress;
 	GtkWidget *scroll;
-	GtkWidget *status;
 	GtkWidget *top_box;
 	GtkWidget *vbox;
 	GtkWidget *web_view;
@@ -70,13 +68,12 @@ static gboolean cooperative_alone = TRUE;
 static gboolean cooperative_instances = TRUE;
 static int cooperative_pipe_fp = 0;
 static gchar *download_dir = "/tmp";
-static gint downloads_indicated = 0;
 static Window embed = 0;
 static gchar *fifo_suffix = "main";
 static gdouble global_zoom = 1.0;
 static gchar *home_uri = "about:blank";
+static gboolean initial_wc_setup_done = FALSE;
 static GHashTable *keywords = NULL;
-static gboolean language_is_set = FALSE;
 static gchar *search_text = NULL;
 static gboolean tabbed_automagic = TRUE;
 static gchar *user_agent = NULL;
@@ -168,8 +165,6 @@ client_new(const gchar *uri)
 	                 G_CALLBACK(client_destroy_request), c);
 	g_signal_connect(G_OBJECT(c->web_view), "decide-policy",
 	                 G_CALLBACK(decide_policy), NULL);
-	g_signal_connect(G_OBJECT(wc), "download-started",
-	                 G_CALLBACK(download_handle_start), c);
 	g_signal_connect(G_OBJECT(c->web_view), "key-press-event",
 	                 G_CALLBACK(key_web_view), c);
 	g_signal_connect(G_OBJECT(c->web_view), "button-press-event",
@@ -179,10 +174,15 @@ client_new(const gchar *uri)
 	g_signal_connect(G_OBJECT(c->web_view), "mouse-target-changed",
 	                 G_CALLBACK(hover_web_view), c);
 
-	if (!language_is_set && accepted_language[0] != NULL)
+	if (!initial_wc_setup_done)
 	{
-		webkit_web_context_set_preferred_languages(wc, accepted_language);
-		language_is_set = TRUE;
+		if (accepted_language[0] != NULL)
+			webkit_web_context_set_preferred_languages(wc, accepted_language);
+
+		g_signal_connect(G_OBJECT(wc), "download-started",
+		                 G_CALLBACK(download_handle_start), NULL);
+
+		initial_wc_setup_done = TRUE;
 	}
 
 	if (user_agent != NULL)
@@ -203,13 +203,8 @@ client_new(const gchar *uri)
 	gtk_level_bar_set_value(GTK_LEVEL_BAR(c->progress), 0);
 	gtk_widget_set_size_request(c->progress, 100, -1);
 
-	c->status = gtk_level_bar_new();
-	gtk_level_bar_set_value(GTK_LEVEL_BAR(c->status), 0);
-	gtk_widget_set_size_request(c->status, 20, -1);
-
 	c->top_box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
-	gtk_box_pack_start(GTK_BOX(c->top_box), c->status, FALSE, FALSE, 2);
-	gtk_box_pack_start(GTK_BOX(c->top_box), c->location, TRUE, TRUE, 0);
+	gtk_box_pack_start(GTK_BOX(c->top_box), c->location, TRUE, TRUE, 2);
 	gtk_box_pack_start(GTK_BOX(c->top_box), c->progress, FALSE, FALSE, 2);
 
 	c->vbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
@@ -373,7 +368,6 @@ download_handle_start(WebKitWebView *web_view, WebKitDownload *download,
 gboolean
 download_handle(WebKitDownload *download, gchar *suggested_filename, gpointer data)
 {
-	struct Client *c = (struct Client *)data;
 	gchar *path, *path2 = NULL, *uri;
 	GtkToolItem *tb;
 	int suffix = 1;
@@ -399,10 +393,6 @@ download_handle(WebKitDownload *download, gchar *suggested_filename, gpointer da
 		webkit_download_set_destination(download, uri);
 		g_free(uri);
 
-		gtk_level_bar_set_value(GTK_LEVEL_BAR(c->status), 1);
-		downloads_indicated++;
-		g_timeout_add(500, download_reset_indicator, c);
-
 		tb = gtk_tool_button_new(NULL, NULL);
 		gtk_tool_button_set_icon_name(GTK_TOOL_BUTTON(tb), "gtk-delete");
 		gtk_tool_button_set_label(GTK_TOOL_BUTTON(tb), suggested_filename);
@@ -421,18 +411,6 @@ download_handle(WebKitDownload *download, gchar *suggested_filename, gpointer da
 	g_free(path2);
 
 	/* Propagate -- to whom it may concern. */
-	return FALSE;
-}
-
-gboolean
-download_reset_indicator(gpointer data)
-{
-	struct Client *c = (struct Client *)data;
-
-	downloads_indicated--;
-	if (downloads_indicated == 0)
-		gtk_level_bar_set_value(GTK_LEVEL_BAR(c->status), 0);
-
 	return FALSE;
 }
 
