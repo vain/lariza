@@ -236,6 +236,17 @@ following environment variables:
         In HTTP requests, WebKit sets the "Accepted-Language" header to
         this value. Defaults to "en-US".
 
+    LARIZA_CRASH_AUTORELOAD_DELAY
+        If/when the WebKit process crashes, lariza's main process will
+        receive a signal and can act accordingly. The default value of
+        this variable is "2", which means that lariza will wait two
+        seconds and then reload each window/tab.
+
+        If you set $LARIZA_CRASH_AUTORELOAD_DELAY to zero or any
+        negative value, then lariza will not automatically reload
+        anything. Note, however, that you can still do this manually by
+        pressing the "reload" hotkey for each window.
+
     LARIZA_DOWNLOAD_DIR
         All downloads are automatically stored in this directory.
         Defaults to "/tmp".

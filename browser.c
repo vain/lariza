@@ -22,6 +22,8 @@ static void changed_download_progress(GObject *, GParamSpec *, gpointer);
 static void changed_load_progress(GObject *, GParamSpec *, gpointer);
 static void changed_title(GObject *, GParamSpec *, gpointer);
 static void changed_uri(GObject *, GParamSpec *, gpointer);
+static gboolean crashed_web_view(WebKitWebView *, gpointer);
+static gboolean crashed_web_view_reload(gpointer);
 static gboolean decide_policy(WebKitWebView *, WebKitPolicyDecision *,
                               WebKitPolicyDecisionType, gpointer);
 static gboolean download_handle(WebKitDownload *, gchar *, gpointer);
@@ -67,6 +69,7 @@ static gint clients = 0;
 static gboolean cooperative_alone = TRUE;
 static gboolean cooperative_instances = TRUE;
 static int cooperative_pipe_fp = 0;
+static int crash_autoreload_delay = 2;
 static gchar *download_dir = "/tmp";
 static Window embed = 0;
 static gchar *fifo_suffix = "main";
@@ -173,6 +176,8 @@ client_new(const gchar *uri)
 	                 G_CALLBACK(key_web_view), c);
 	g_signal_connect(G_OBJECT(c->web_view), "mouse-target-changed",
 	                 G_CALLBACK(hover_web_view), c);
+	g_signal_connect(G_OBJECT(c->web_view), "web-process-crashed",
+	                 G_CALLBACK(crashed_web_view), c);
 
 	if (!initial_wc_setup_done)
 	{
@@ -336,6 +341,29 @@ changed_uri(GObject *obj, GParamSpec *pspec, gpointer data)
 }
 
 gboolean
+crashed_web_view(WebKitWebView *web_view, gpointer data)
+{
+	fprintf(stderr, __NAME__": WebView crashed!\n");
+	if (crash_autoreload_delay >= 1)
+	{
+		fprintf(stderr, __NAME__": Reloading WebView in %d seconds.\n",
+		        crash_autoreload_delay);
+		g_timeout_add_seconds(crash_autoreload_delay, crashed_web_view_reload,
+		                      web_view);
+	}
+
+	return TRUE;
+}
+
+gboolean
+crashed_web_view_reload(gpointer data)
+{
+	webkit_web_view_reload_bypass_cache(WEBKIT_WEB_VIEW(data));
+
+	return G_SOURCE_REMOVE;
+}
+
+gboolean
 decide_policy(WebKitWebView *web_view, WebKitPolicyDecision *decision,
               WebKitPolicyDecisionType type, gpointer data)
 {
@@ -478,6 +506,10 @@ grab_environment_configuration(void)
 	e = g_getenv(__NAME_UPPERCASE__"_ACCEPTED_LANGUAGE");
 	if (e != NULL)
 		accepted_language[0] = g_strdup(e);
+
+	e = g_getenv(__NAME_UPPERCASE__"_CRASH_AUTORELOAD_DELAY");
+	if (e != NULL)
+		crash_autoreload_delay = atoi(e);
 
 	e = g_getenv(__NAME_UPPERCASE__"_DOWNLOAD_DIR");
 	if (e != NULL)
