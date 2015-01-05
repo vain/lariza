@@ -41,6 +41,7 @@ static gboolean keywords_try_search(WebKitWebView *, const gchar *);
 static gboolean remote_msg(GIOChannel *, GIOCondition, gpointer);
 static void search(gpointer, gint);
 static Window tabbed_launch(void);
+static void trust_user_certs(WebKitWebContext *);
 static void usage(void);
 
 
@@ -186,6 +187,8 @@ client_new(const gchar *uri)
 
 		g_signal_connect(G_OBJECT(wc), "download-started",
 		                 G_CALLBACK(download_handle_start), NULL);
+
+		trust_user_certs(wc);
 
 		initial_wc_setup_done = TRUE;
 	}
@@ -593,6 +596,7 @@ key_location(GtkWidget *widget, GdkEvent *event, gpointer data)
 	struct Client *c = (struct Client *)data;
 	const gchar *t;
 	gchar *f;
+	WebKitWebContext *wc = webkit_web_view_get_context(WEBKIT_WEB_VIEW(c->web_view));
 
 	if (event->type == GDK_KEY_PRESS)
 	{
@@ -613,6 +617,9 @@ key_location(GtkWidget *widget, GdkEvent *event, gpointer data)
 				case GDK_KEY_k:  /* initiate search (BOTH hands) */
 					gtk_entry_set_text(GTK_ENTRY(c->location), "/");
 					gtk_editable_set_position(GTK_EDITABLE(c->location), -1);
+					return TRUE;
+				case GDK_KEY_c:  /* reload trusted certs (left hand) */
+					trust_user_certs(wc);
 					return TRUE;
 			}
 		}
@@ -656,6 +663,7 @@ key_web_view(GtkWidget *widget, GdkEvent *event, gpointer data)
 	gdouble dx, dy;
 	gchar *f;
 	gfloat z;
+	WebKitWebContext *wc = webkit_web_view_get_context(WEBKIT_WEB_VIEW(c->web_view));
 
 	if (event->type == GDK_KEY_PRESS)
 	{
@@ -697,6 +705,9 @@ key_web_view(GtkWidget *widget, GdkEvent *event, gpointer data)
 					gtk_widget_grab_focus(c->location);
 					gtk_entry_set_text(GTK_ENTRY(c->location), "/");
 					gtk_editable_set_position(GTK_EDITABLE(c->location), -1);
+					return TRUE;
+				case GDK_KEY_c:  /* reload trusted certs (left hand) */
+					trust_user_certs(wc);
 					return TRUE;
 			}
 		}
@@ -880,6 +891,33 @@ tabbed_launch(void)
 	if (plug_into == 0)
 		fprintf(stderr, __NAME__": The XID from tabbed is 0\n");
 	return plug_into;
+}
+
+void
+trust_user_certs(WebKitWebContext *wc)
+{
+	GTlsCertificate *cert;
+	const gchar *basedir, *file, *absfile;
+	GDir *dir;
+
+	basedir = g_build_filename(g_get_user_config_dir(), __NAME__, "certs", NULL);
+	dir = g_dir_open(basedir, 0, NULL);
+	if (dir != NULL)
+	{
+		file = g_dir_read_name(dir);
+		while (file != NULL)
+		{
+			absfile = g_build_filename(g_get_user_config_dir(), __NAME__, "certs",
+			                           file, NULL);
+			cert = g_tls_certificate_new_from_file(absfile, NULL);
+			if (cert == NULL)
+				fprintf(stderr, __NAME__": Could not load trusted cert '%s'\n", file);
+			else
+				webkit_web_context_allow_tls_certificate_for_host(wc, cert, file);
+			file = g_dir_read_name(dir);
+		}
+		g_dir_close(dir);
+	}
 }
 
 void

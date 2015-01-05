@@ -16,6 +16,7 @@ Features:
     - Keyword based searching: Opening "wi foo" will search wikipedia
     - Global content zoom
     - Cooperative instances using FIFOs
+    - Certificate trust store
     - Support for Flash and Java
     - Bundled web extensions:
         - Adblock
@@ -127,6 +128,9 @@ Main windows
         Mod1 + 3
             Repeat the last search (backward).
 
+        Mod1 + c
+            Reload trusted certificates.
+
         Escape
             Stop loading.
 
@@ -159,6 +163,9 @@ Main windows
 
         Mod1 + k
             Reset the content of the location bar to "/".
+
+        Mod1 + c
+            Reload trusted certificates.
 
         Escape
             Reset the content of the location bar to the current URI.
@@ -314,6 +321,33 @@ lariza comes with the following extensions:
 Those bundled web extensions are automatically compiled when you run
 make. To use them, though, make sure to copy them to the directory
 mentioned above.
+
+
+====================
+Trusted certificates
+====================
+
+By default, lariza trusts whatever CAs are trusted by WebKit, i.e. by
+your GnuTLS installation. If you wish to trust additional certificates,
+such as self-signed certificates, the first thing you should do is try
+to add the appropriate CAs to your system-wide store.
+
+If you wish to add simple exceptions, you can grab the certificate and
+store it in the directory ~/.config/lariza/certs. The filename must be
+equal to the hostname:
+
+    $ echo | openssl s_client -connect foo.de:443 | openssl x509 >foo.de
+
+This tells lariza to trust the given certificate when connecting to host
+"foo.de".
+
+You can reload these certificates at runtime by pressing the appropriate
+hotkey (see above). Note that removed certificates will be kept in
+memory until you restart lariza.
+
+Note: This is NOT equal to certificate pinning. WebKit ignores
+user-specified certificates if the server's certificate can be validated
+by any system-wide CA.
 
 
 ====================
