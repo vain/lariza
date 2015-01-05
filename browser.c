@@ -42,7 +42,6 @@ static gboolean remote_msg(GIOChannel *, GIOCondition, gpointer);
 static void search(gpointer, gint);
 static Window tabbed_launch(void);
 static void trust_user_certs(WebKitWebContext *);
-static void usage(void);
 
 
 struct Client
@@ -920,13 +919,6 @@ trust_user_certs(WebKitWebContext *wc)
 	}
 }
 
-void
-usage(void)
-{
-	fprintf(stderr, "Usage: "__NAME__" [OPTION]... [URI]...\n");
-	exit(EXIT_FAILURE);
-}
-
 
 int
 main(int argc, char **argv)
@@ -952,7 +944,8 @@ main(int argc, char **argv)
 				tabbed_automagic = FALSE;
 				break;
 			default:
-				usage();
+				fprintf(stderr, "Usage: "__NAME__" [OPTION]... [URI]...\n");
+				exit(EXIT_FAILURE);
 		}
 	}
 
