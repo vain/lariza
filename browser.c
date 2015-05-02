@@ -149,6 +149,8 @@ client_new(const gchar *uri)
 		gtk_window_set_wmclass(GTK_WINDOW(c->win), __NAME__, __NAME_CAPITALIZED__);
 	}
 
+	gtk_window_set_default_size(GTK_WINDOW(c->win), 800, 600);
+
 	g_signal_connect(G_OBJECT(c->win), "destroy", G_CALLBACK(client_destroy), c);
 	gtk_window_set_title(GTK_WINDOW(c->win), __NAME__);
 
