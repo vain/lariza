@@ -950,7 +950,8 @@ main(int argc, char **argv)
 	}
 
 	keywords_load();
-	cooperation_setup();
+	if (cooperative_instances)
+		cooperation_setup();
 	downloadmanager_setup();
 
 	if (tabbed_automagic && !(cooperative_instances && !cooperative_alone))
