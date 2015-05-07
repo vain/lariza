@@ -65,12 +65,6 @@ persistent storage, nor a plugin system, nor cloud sync, nor bookmarks.
 
 lariza tries not to exceed 1000 lines of code.
 
-That being said, this kind of minimalism is not for everyone. If you're
-looking for more features (and a more open feature policy), then you
-might want to check out okraits' fork:
-
-    https://github.com/okraits/lariza/
-
 
 ========================
 Using lariza with tabbed
