@@ -1,7 +1,6 @@
-
-                               ==========
+                                 ======
                                  lariza
-                               ==========
+                                 ======
 
 
 A simple web browser using GTK+ 3, GLib and WebKit2GTK+.
@@ -22,367 +21,75 @@ Features:
         - Adblock
 
 
-==============
-About the name
-==============
+Installation
+------------
 
-"lariza" stems from a german sentence:
+The following C libraries are required:
 
-    Alle anderen waren mir zu anstrengend.
-     l   a         r    i  z  a
+    - GTK+ 3
+    - WebKit2 API for GTK+ 3
 
-That phrase basically means: "It was too tiresome to deal with any other
-browser." I couldn't find a simple browser that does just what I need.
-Most of them are utterly bloated, others lack essential functions. Thus,
-I was forced to write scripts and tools and stuff to deal with these
-issues. That is what was tiresome. I don't want to work around bugs or
-nonsensical behavior anymore.
+lariza expects to be run on a POSIX-ish operating system.
 
-So, I wrote my own browser^W WebKit GUI. WebKit does all the dirty work.
+To build the program and install it to /usr/local:
 
+    $ make
+    # make install
 
-================================
-What lariza is and what it's not
-================================
+To use bundled web extensions, they must be copied or symlinked to the
+appropriate path. Please refer to the manpage.
 
-lariza does what I need. It won't do other things. I'm open for pull
-requests but please don't be upset if I turn them down -- which might
-happen if it's a feature that I simply don't need.
 
-Especially, it's very likely that lariza will never have a "follow
-mode" like dwb, luakit or others have. I've used these browsers for
-quite some time and I've also used Firefox extensions that add a "follow
-mode". The point is, "follow mode" doesn't work anymore. This was a good
-thing ten years ago. Today, a lot of websites make heavy use of
-JavaScript or hovering. You NEED some kind of pointing device. I found
-using "follow mode" to be very frustrating today, because you still have
-to reach for the mouse all the time. So, you might as well just optimize
-your mousing workflow.
+Running
+-------
 
-lariza does not compete with powerful browsers like dwb or luakit, nor
-with monstrous applications like Firefox or Chromium. lariza won't have
-persistent storage, nor a plugin system, nor cloud sync, nor bookmarks.
+You simply invoke the main program:
 
-lariza tries not to exceed 1000 lines of code.
+    $ lariza
 
+Refer to the manpage for all options.
 
-========================
-Using lariza with tabbed
-========================
 
-By default, lariza automatically launches an instance of suckless'
-tabbed.
+Background information
+----------------------
 
-You can turn this feature off (see command line arguments) or you can
-specify a command line argument to embed lariza in an arbitrary
-container (XEMBED). Note that lariza will also automatically embed new
-windows in the same container.
+ What lariza is and what it's not
 
-When using the automatically launched tabbed instance, you can't use
-tabbed's Ctrl + Shift + Return hotkey. This is because tabbed is
-launched with "-d", so it knows nothing about lariza. However, lariza
-provides its own hotkey to launch a new window which will be embedded in
-the same instance of tabbed.
+  lariza does what I need. It won't do other things. I'm open for pull
+  requests but please don't be upset if I turn them down -- which might
+  happen if it's a feature that I simply don't need.
 
+  Especially, it's very likely that lariza will never have a "follow
+  mode" like dwb, luakit or others have. I've used these browsers for
+  quite some time and I've also used Firefox extensions that add a
+  "follow mode". The point is, "follow mode" doesn't work anymore. This
+  was a good thing ten years ago. Today, a lot of websites make heavy
+  use of JavaScript or hovering. You NEED some kind of pointing device.
+  I found using "follow mode" to be very frustrating today, because you
+  still have to reach for the mouse all the time. So, you might as well
+  just optimize your mousing workflow.
 
-=======
-Hotkeys
-=======
+  lariza does not compete with powerful browsers like dwb or luakit, nor
+  with monstrous applications like Firefox or Chromium. lariza won't
+  have persistent storage, nor a plugin system, nor cloud sync, nor
+  bookmarks.
 
-Main windows
+  lariza tries not to exceed 1000 lines of code.
 
-    When the WebKit viewport is focused:
 
-        Mod1 + q
-            Close the current window.
+ About the name
 
-        Mod1 + w
-            Go to your "homepage". See the environment variable
-            $LARIZA_HOME_URI.
+  "lariza" stems from a german sentence:
 
-        Mod1 + e
-            Open a new window.
+      Alle anderen waren mir zu anstrengend.
+       l   a         r    i  z  a
 
-        Mod1 + r
-            Reload the current page.
+  That phrase basically means: "It was too tiresome to deal with any
+  other browser." I couldn't find a simple browser that does just what I
+  need. Most of them are utterly bloated, others lack essential
+  functions. Thus, I was forced to write scripts and tools and stuff to
+  deal with these issues. That is what was tiresome. I don't want to
+  work around bugs or nonsensical behavior anymore.
 
-        Mod1 + d
-            Open the download manager.
-
-        Mod1 + l
-            Focus the location bar.
-
-        Mod1 + k
-            Focus the location bar and set its text to "/", allowing you
-            to easily initiate a search.
-
-        Mod1 + 2  or  Mod1 + n
-            Repeat the last search (forward).
-
-        Mod1 + 3
-            Repeat the last search (backward).
-
-        Mod1 + c
-            Reload trusted certificates.
-
-        Escape
-            Stop loading.
-
-        Middle mouse
-            Open the link under the pointer in a new window.
-
-        Backward / forward (mouse keys 8 and 9)
-            Does the obvious.
-
-        Mod1 + Scroll up  or  Ctrl + Scroll up
-            Increase zoom level of the current page.
-
-        Mod1 + Scroll down  or  Ctrl + Scroll down
-            Decrase zoom level of the current page.
-
-        Mod1 + Scroll horizontally  or  Ctrl + Scroll horizontally
-            Reset zoom to $LARIZA_ZOOM.
-
-
-    When the location bar is focused:
-
-        Mod1 + q
-            Close the current window.
-
-        Mod1 + d
-            Open the download manager.
-
-        Mod1 + r
-            Reload the current page.
-
-        Mod1 + k
-            Reset the content of the location bar to "/".
-
-        Mod1 + c
-            Reload trusted certificates.
-
-        Escape
-            Reset the content of the location bar to the current URI.
-
-        Return
-            "Commit", i.e. begin searching, do a keyword based search or
-            open the URI.
-
-
-Download manager
-
-    Mod1 + d
-        Close the download manager (downloads are not aborted).
-
-
-======================
-Command line arguments
-======================
-
-Usage:
-
-    lariza [OPTION]... [URI]...
-
-In addition to the standard arguments of GTK+ 3, lariza knows about the
-following options:
-
-    -e <wid>
-        Embeds the main window and all newly created windows in the
-        window specified by <wid>. The download manager is always a
-        "popup".
-
-    -C
-        Disables cooperative instances.
-
-    -T
-        Disables automatic launching of suckless' tabbed.
-
-After these options there can be any number of URIs. If no URIs are
-given, $LARIZA_HOME_URI will be opened.
-
-
-=====================
-Environment variables
-=====================
-
-In addition to the standard variables of GTK+ 3, lariza knows about the
-following environment variables:
-
-    LARIZA_ACCEPTED_LANGUAGE
-        In HTTP requests, WebKit sets the "Accepted-Language" header to
-        this value. Defaults to "en-US".
-
-    LARIZA_CRASH_AUTORELOAD_DELAY
-        If/when the WebKit process crashes, lariza's main process will
-        receive a signal and can act accordingly. The default value of
-        this variable is "2", which means that lariza will wait two
-        seconds and then reload each window/tab.
-
-        If you set $LARIZA_CRASH_AUTORELOAD_DELAY to zero or any
-        negative value, then lariza will not automatically reload
-        anything. Note, however, that you can still do this manually by
-        pressing the "reload" hotkey for each window.
-
-    LARIZA_DOWNLOAD_DIR
-        All downloads are automatically stored in this directory. If you
-        want to stick to XDG directories, then you should configure your
-        "xdg-user-dirs" and use this:
-
-            LARIZA_DOWNLOAD_DIR=$(xdg-user-dir DOWNLOAD)
-
-        This variable defaults to "/var/tmp".
-
-    LARIZA_FIFO_SUFFIX
-        Cooperative instances are implemented using a named pipe in the
-        file system. The name of this pipe usually is (at least on
-        modern systems following XDG "standards"):
-
-            /var/run/user/$UID/lariza.fifo-$LARIZA_FIFO_SUFFIX
-
-        $UID is the id of your user. $LARIZA_FIFO_SUFFIX defaults to
-        "main". If you change this variable, you can launch several
-        independent cooperative instances of lariza.
-
-    LARIZA_HOME_URI
-        This URI will be opened by pressing the appropriate hotkeys
-        ("homepage" or "new window") and if no URIs are specified on the
-        command line. Defaults to "about:blank".
-
-    LARIZA_USER_AGENT
-        Lariza will identify itself with this string. Uses WebKit's
-        default value if unset.
-
-    LARIZA_WEB_EXTENSIONS_DIR
-        Sets the directory where WebKit will look for "web extensions".
-        Defaults to "~/.local/share/lariza/web_extensions".
-
-    LARIZA_ZOOM
-        Zoom level for WebKit viewports. Defaults to 1.0.
-
-
-=======================
-Keyword based searching
-=======================
-
-In this file, you can configure keywords and the associated URIs:
-
-    ~/.config/lariza/keywordsearch
-
-Each line has to look like this:
-
-    wi https://en.wikipedia.org/w/index.php?title=Special:Search&search=%s
-
-"wi" is the keyword, so when opening "wi foo", lariza will search in
-Wikipedia. Note the "%s" at the end of the URI: This is where your
-search term will be placed.
-
-Lines starting with "#" are ignored.
-
-
-================
-Download manager
-================
-
-Open the download manager using the appropriate hotkey. A new window
-listing your downloads will appear. Clicking on an item will remove it
-from the list and -- if needed -- cancel the download.
-
-There's no file manager integration (I don't use one), nor does lariza
-delete, overwrite or resume downloads. If a file already exists, it
-won't be touched. Instead, the new file name will have a suffix such as
-".1", ".2", ".3" and so on.
-
-
-======================
-Bundled web extensions
-======================
-
-On startup, WebKit checks ~/.local/share/lariza/web_extensions for any
-.so files. See this blog post for further information on these
-extensions:
-
-http://blogs.igalia.com/carlosgc/2013/09/10/webkit2gtk-web-process-extensions/
-
-lariza comes with the following extensions:
-
-    we_adblock.so
-
-        Generic adblock. Reads patterns from the following file:
-
-            ~/.config/lariza/adblock.black
-
-        Each line can contain a regular expression. These expressions
-        match case-insensitive and partially, i.e. ".*foo.*" is the same
-        as ".*FOO.*" and you can use anchors like "^https?://...".
-
-        Lines starting with "#" are ignored.
-
-Those bundled web extensions are automatically compiled when you run
-make. To use them, though, make sure to copy them to the directory
-mentioned above.
-
-
-====================
-Trusted certificates
-====================
-
-By default, lariza trusts whatever CAs are trusted by WebKit, i.e. by
-your GnuTLS installation. If you wish to trust additional certificates,
-such as self-signed certificates, the first thing you should do is try
-to add the appropriate CAs to your system-wide store.
-
-If you wish to add simple exceptions, you can grab the certificate and
-store it in the directory ~/.config/lariza/certs. The filename must be
-equal to the hostname:
-
-    $ echo | openssl s_client -connect foo.de:443 | openssl x509 >foo.de
-
-This tells lariza to trust the given certificate when connecting to host
-"foo.de".
-
-You can reload these certificates at runtime by pressing the appropriate
-hotkey (see above). Note that removed certificates will be kept in
-memory until you restart lariza.
-
-Note: This is NOT equal to certificate pinning. WebKit ignores
-user-specified certificates if the server's certificate can be validated
-by any system-wide CA.
-
-
-====================
-WebKit local storage
-====================
-
-WebKit does create files in your $XDG_* directories, i.e. ~/.local/share
-or ~/.cache. It's up to you what you want to do with this junk. I remove
-it regularly when no WebKit browser is running. Another option would be
-to change the $XDG_* variables.
-
-I have explicitly not turned off the local storage feature in WebKit
-because I don't know if this breaks web applications.
-
-
-============
-Dependencies
-============
-
-lariza needs the following Arch Linux packages:
-
-    - gtk3
-    - webkit2gtk (WebKit2 API for GTK+ 3)
-
-
-==========
-Literature
-==========
-
-API references:
-
-    - http://webkitgtk.org/reference/webkit2gtk/stable/index.html
-    - https://developer.gnome.org/gtk3/stable/index.html
-    - https://developer.gnome.org/glib/stable/index.html
-
-Regular expressions supported by GRegex, you can use these in your
-adblock patterns:
-
-    - https://developer.gnome.org/glib/stable/glib-regex-syntax.html
+  So, I wrote my own browser^W WebKit GUI. WebKit does all the dirty
+  work.

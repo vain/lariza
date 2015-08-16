@@ -1,0 +1,203 @@
+.TH lariza 1 "2015-11-28" "lariza" "User Commands"
+.\" --------------------------------------------------------------------
+.SH NAME
+lariza.usage \- extended usage hints
+.\" --------------------------------------------------------------------
+.SH DESCRIPTION
+\fBlariza\fP is a simple web browser using GTK+ 3, GLib and WebKit2GTK+.
+This manpage contains additional hints and pointers regarding its usage.
+.\" --------------------------------------------------------------------
+.SH "BUNDLED WEB EXTENSIONS"
+On startup, WebKit checks \fI~/.local/share/lariza/web_extensions\fP for
+any \fB.so\fP files. See
+.UR http://\:blogs.igalia.com/\:carlosgc/\:2013/\:09/\:10/\:webkit2gtk-\:web-\:process-\:extensions/
+this blog post
+.UE
+for further information on these extensions.
+.P
+\fBlariza\fP comes with the following extensions:
+.TP
+\fBwe_adblock.so\fP
+Generic adblock. Reads patterns from the file
+\fI~/.config/lariza/adblock.black\fP. Each line can contain a regular
+expression. These expressions match case-insensitive and partially, i.e.
+\fB.*foo.*\fP is the same as \fB.*FOO.*\fP and you can use anchors like
+\fB^https?://...\fP. Please refer to
+.UR https://\:developer.\:gnome.\:org/\:glib/\:stable/\:glib-\:regex-\:syntax.html
+the GLib reference
+.UE
+for more details. Lines starting with \fB#\fP are ignored.
+.P
+Those bundled web extensions are automatically compiled when you run
+\fBmake\fP. To use them, though, make sure to copy them to the directory
+mentioned above.
+.\" --------------------------------------------------------------------
+.SH "DOWNLOAD MANAGER"
+Open the download manager using the appropriate hotkey. A new window
+listing your downloads will appear. Clicking on an item will remove it
+from the list and \(em if needed \(em cancel the download.
+.P
+There's no file manager integration, nor does \fBlariza\fP delete,
+overwrite or resume downloads. If a file already exists, it won't be
+touched. Instead, the new file name will have a suffix such as \fB.1\fP,
+\fB.2\fP, \fB.3\fP, and so on.
+.\" --------------------------------------------------------------------
+.SH "HOTKEYS"
+.SS "Main window \(em WebKit viewport focused"
+.TP
+\fBMod1\fP + \fBq\fP
+Close the current window.
+.TP
+\fBMod1\fP + \fBw\fP
+Go to your \(lqhomepage\(rq. See the environment variable
+$\fBLARIZA_HOME_URI\fP.
+.TP
+\fBMod1\fP + \fBe\fP
+Open a new window.
+.TP
+\fBMod1\fP + \fBr\fP
+Reload the current page.
+.TP
+\fBMod1\fP + \fBd\fP
+Open the download manager.
+.TP
+\fBMod1\fP + \fBl\fP
+Focus the location bar.
+.TP
+\fBMod1\fP + \fBk\fP
+Focus the location bar and set its text to \fB/\fP, allowing you to
+easily initiate a search.
+.TP
+\fBMod1\fP + \fB2\fP
+.TQ
+\fBMod1\fP + \fBn\fP
+Repeat the last search (forward).
+.TP
+\fBMod1\fP + \fB3\fP
+Repeat the last search (backward).
+.TP
+\fBMod1\fP + \fBc\fP
+Reload trusted certificates.
+.TP
+\fBEscape\fP
+Stop loading.
+.TP
+\fBMiddle mouse\fP
+Open the link under the pointer in a new window.
+.TP
+\fBBackward\fP / \fBforward\fP (mouse keys 8 and 9)
+Does the obvious.
+.TP
+\fBMod1\fP + \fBScroll up\fP
+.TQ
+\fBCtrl\fP + \fBScroll up\fP
+Increase zoom level of the current page.
+.TP
+\fBMod1\fP + \fBScroll down\fP
+.TQ
+\fBCtrl\fP + \fBScroll down\fP
+Decrase zoom level of the current page.
+.TP
+\fBMod1\fP + \fBScroll horizontally\fP
+.TQ
+\fBCtrl\fP + \fBScroll horizontally\fP
+Reset zoom to $\fBLARIZA_ZOOM\fP.
+.P
+.SS "Main window \(em location bar focused"
+.TP
+\fBMod1\fP + \fBq\fP
+Close the current window.
+.TP
+\fBMod1\fP + \fBd\fP
+Open the download manager.
+.TP
+\fBMod1\fP + \fBr\fP
+Reload the current page.
+.TP
+\fBMod1\fP + \fBk\fP
+Reset the content of the location bar to \fB/\fP.
+.TP
+\fBMod1\fP + \fBc\fP
+Reload trusted certificates.
+.TP
+\fBEscape\fP
+Reset the content of the location bar to the current URI.
+.TP
+\fBReturn\fP
+Commit, i.e. begin searching, do a keyword based search or open the URI.
+.SS "Download manager"
+.TP
+\fBMod1\fP + \fBd\fP
+Close the download manager (downloads are not aborted).
+.\" --------------------------------------------------------------------
+.SH "KEYWORD BASED SEARCHING"
+In this file, you can configure keywords and the associated URIs:
+\fI~/.config\:/lariza\:/keywordsearch\fP. Each line has to look like
+this:
+.P
+\f(CW
+.nf
+\&wi https://en.wikipedia.org/w/index.php?title=Special:Search&search=%s
+.fi
+\fP
+.P
+\fBwi\fP is the keyword, so when opening \fBwi foo\fP, \fBlariza\fP
+will search in Wikipedia. Note the \fB%s\fP at the end of the URI: This
+is where your search term will be placed.
+.P
+Lines starting with \fB#\fP are ignored.
+.\" --------------------------------------------------------------------
+.SH "TRUSTED CERTIFICATES"
+By default, \fBlariza\fP trusts whatever CAs are trusted by WebKit, i.e. by
+your GnuTLS installation. If you wish to trust additional certificates,
+such as self-signed certificates, the first thing you should do is try
+to add the appropriate CAs to your system-wide store.
+.P
+If you wish to add simple exceptions, you can grab the certificate and
+store it in the directory \fI~/.config/lariza/certs\fP. The filename
+must be equal to the hostname:
+.P
+.\f(CW
+.nf
+\&$ echo | openssl s_client -connect foo.de:443 | openssl x509 >foo.de
+.fi
+\fP
+.P
+This tells \fBlariza\fP to trust the given certificate when connecting
+to host \fBfoo.de\fP.
+.P
+You can reload these certificates at runtime by pressing the appropriate
+hotkey. Note that removed certificates will be kept in memory until you
+restart \fBlariza\fP.
+.P
+Note: This is NOT equal to certificate pinning. WebKit ignores
+user-specified certificates if the server's certificate can be validated
+by any system-wide CA.
+.\" --------------------------------------------------------------------
+.SH "USING LARIZA WITH TABBED"
+By default, \fBlariza\fP automatically launches an instance of suckless'
+\fBtabbed\fP(1).
+.P
+You can turn this feature off (see command line arguments) or you can
+specify a command line argument to embed \fBlariza\fP into an arbitrary
+container (XEMBED). Note that \fBlariza\fP will also automatically embed
+new windows in the same container.
+.P
+When using the automatically launched \fBtabbed\fP(1) instance, you
+can't use \fBtabbed\fP(1)'s \fBCtrl + Shift + Return\fP hotkey. This is
+because \fBtabbed\fP(1) is launched with \fB\-d\fP, so it knows nothing
+about \fBlariza\fP. However, \fBlariza\fP provides its own hotkey to
+launch a new window which will be embedded in the same instance of
+\fBtabbed\fP(1).
+.\" --------------------------------------------------------------------
+.SH "WEBKIT LOCAL STORAGE"
+WebKit does create files in your $\fBXDG_*\fP directories, i.e.
+\fI~/.local/share\fP or \fI~/.cache\fP. It's up to you what you want to
+do with this junk. I remove it regularly when no WebKit browser is
+running. Another option would be to change the $\fBXDG_*\fP variables.
+.P
+I have explicitly not turned off the local storage feature in WebKit
+because I don't know if this breaks web applications.
+.\" --------------------------------------------------------------------
+.SH "SEE ALSO"
+.BR lariza (1).

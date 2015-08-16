@@ -1,0 +1,115 @@
+.TH lariza 1 "2015-11-28" "lariza" "User Commands"
+.\" --------------------------------------------------------------------
+.SH NAME
+lariza \- simple web browser
+.\" --------------------------------------------------------------------
+.SH SYNOPSIS
+\fBlariza\fP
+[\fB\-e\fP \fIwid\fP]
+[\fB\-C\fP]
+[\fB\-T\fP]
+[\fIURI ...\fP]
+.\" --------------------------------------------------------------------
+.SH DESCRIPTION
+\fBlariza\fP is a simple web browser using GTK+ 3, GLib and WebKit2GTK+.
+.\" --------------------------------------------------------------------
+.SH OPTIONS
+In addition to the standard arguments of GTK+ 3, \fBlariza\fP knows
+about the following options:
+.TP
+\fB\-e\fP \fIwid\fP
+Embeds the main window and all newly created windows in the window
+specified by \fIwid\fP. The download manager is always a \(lqpopup\(rq.
+.TP
+\fB\-C\fP
+Disables cooperative instances.
+.TP
+\fB\-T\fP
+Disables automatic launching of suckless' \fBtabbed\fP(1).
+.P
+After these options there can be any number of URIs. If no URIs are
+given, $\fBLARIZA_HOME_URI\fP will be opened.
+.\" --------------------------------------------------------------------
+.SH ENVIRONMENT
+In addition to the standard variables of GTK+ 3, \fBlariza\fP knows
+about the following environment variables:
+.P
+.TP
+\fBLARIZA_ACCEPTED_LANGUAGE\fP
+In HTTP requests, WebKit sets the \(lqAccepted-Language\(rq header to
+this value. Defaults to \fBen-US\fP.
+.TP
+\fBLARIZA_CRASH_AUTORELOAD_DELAY\fP
+If/when the WebKit process crashes, \fBlariza\fP's main process will
+receive a signal and can act accordingly. The default value of this
+variable is \fB2\fP, which means that \fBlariza\fP will wait two seconds
+and then reload each window/tab.
+
+If you set $\fBLARIZA_CRASH_AUTORELOAD_DELAY\fP to zero or any negative
+value, then \fBlariza\fP will not automatically reload anything. Note,
+however, that you can still do this manually by pressing the
+\(lqreload\(rq hotkey for each window.
+.TP
+\fBLARIZA_DOWNLOAD_DIR\fP
+All downloads are automatically stored in this directory. If you want to
+stick to XDG directories, then you should configure your
+\(lqxdg-user-dirs\(rq and use this:
+
+\f(CW
+.nf
+\&LARIZA_DOWNLOAD_DIR=$(xdg-user-dir DOWNLOAD)
+.fi
+\fP
+
+This variable defaults to \fB/var/tmp\fP.
+.TP
+\fBLARIZA_FIFO_SUFFIX\fP
+Cooperative instances are implemented using a named pipe in the file
+system. The name of this pipe usually is (at least on modern systems
+following XDG \(lqstandards\(rq):
+\fI/var\:/run\:/user\:/$UID\:/lariza.fifo\:-$LARIZA_FIFO_SUFFIX\fP.
+
+$\fBUID\fP is the id of your user. $\fBLARIZA_FIFO_SUFFIX\fP defaults to
+\fBmain\fP. If you change this variable, you can launch several
+independent cooperative instances of \fBlariza\fP.
+.TP
+\fBLARIZA_HOME_URI\fP
+This URI will be opened by pressing the appropriate hotkeys
+(\(lqhomepage\(rq or \(lqnew window\(rq) and if no URIs are specified on
+the command line. Defaults to \fBabout:blank\fP.
+.TP
+\fBLARIZA_USER_AGENT\fP
+\fBlariza\fP will identify itself with this string. Uses WebKit's
+default value if unset.
+.TP
+\fBLARIZA_WEB_EXTENSIONS_DIR\fP
+Sets the directory where WebKit will look for \fBweb extensions\fP.
+Defaults to \fI~/.local\:/share\:/lariza\:/web_extensions\fP.
+.TP
+\fBLARIZA_ZOOM
+Zoom level for WebKit viewports. Defaults to \fB1.0\fP.
+.\" --------------------------------------------------------------------
+.SH FILES
+.TP
+\fI~/.config\:/lariza\:/adblock.black\fP
+Adblock patterns. See \fBlariza.usage\fP(1).
+.TP
+\fI~/.config\:/lariza\:/certs\fP
+Directory where trusted certificates are stored. See
+\fBlariza.usage\fP(1).
+.TP
+\fI~/.config\:/lariza\:/keywordsearch\fP
+Configuration file for keyword base searching. See
+\fBlariza.usage\fP(1).
+.\" --------------------------------------------------------------------
+.SH LICENSE
+\fBlariza\fP is released as \(lqPIZZA-WARE\(rq. See the accompanying
+\fILICENSE\fP file.
+.\" --------------------------------------------------------------------
+.SH HISTORY
+\fBlariza\fP was originally written by Peter Hofmann. The project
+was started in June 2014.
+.\" --------------------------------------------------------------------
+.SH "SEE ALSO"
+.BR lariza.usage (1),
+.BR tabbed (1).
