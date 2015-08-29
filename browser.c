@@ -213,12 +213,12 @@ client_new(const gchar *uri)
 	gtk_widget_set_size_request(c->progress, 100, -1);
 
 	c->top_box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
-	gtk_box_pack_start(GTK_BOX(c->top_box), c->location, TRUE, TRUE, 2);
-	gtk_box_pack_start(GTK_BOX(c->top_box), c->progress, FALSE, FALSE, 2);
+	gtk_box_pack_start(GTK_BOX(c->top_box), c->location, TRUE, TRUE, 0);
+	gtk_box_pack_start(GTK_BOX(c->top_box), c->progress, FALSE, FALSE, 0);
 
 	c->vbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
-	gtk_box_pack_start(GTK_BOX(c->vbox), c->top_box, FALSE, FALSE, 2);
-	gtk_box_pack_start(GTK_BOX(c->vbox), c->scroll, TRUE, TRUE, 2);
+	gtk_box_pack_start(GTK_BOX(c->vbox), c->top_box, FALSE, FALSE, 0);
+	gtk_box_pack_start(GTK_BOX(c->vbox), c->scroll, TRUE, TRUE, 0);
 
 	gtk_container_add(GTK_CONTAINER(c->win), c->vbox);
 
