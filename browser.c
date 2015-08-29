@@ -49,7 +49,6 @@ struct Client
 	gchar *hover_uri;
 	GtkWidget *location;
 	GtkWidget *progress;
-	GtkWidget *scroll;
 	GtkWidget *top_box;
 	GtkWidget *vbox;
 	GtkWidget *web_view;
@@ -198,10 +197,6 @@ client_new(const gchar *uri)
 		g_object_set(G_OBJECT(webkit_web_view_get_settings(WEBKIT_WEB_VIEW(c->web_view))),
 		             "user-agent", user_agent, NULL);
 
-	c->scroll = gtk_scrolled_window_new(NULL, NULL);
-
-	gtk_container_add(GTK_CONTAINER(c->scroll), c->web_view);
-
 	c->location = gtk_entry_new();
 	g_signal_connect(G_OBJECT(c->location), "key-press-event",
 	                 G_CALLBACK(key_location), c);
@@ -218,7 +213,7 @@ client_new(const gchar *uri)
 
 	c->vbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
 	gtk_box_pack_start(GTK_BOX(c->vbox), c->top_box, FALSE, FALSE, 0);
-	gtk_box_pack_start(GTK_BOX(c->vbox), c->scroll, TRUE, TRUE, 0);
+	gtk_box_pack_start(GTK_BOX(c->vbox), c->web_view, TRUE, TRUE, 0);
 
 	gtk_container_add(GTK_CONTAINER(c->win), c->vbox);
 
