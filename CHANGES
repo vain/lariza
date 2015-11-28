@@ -1,0 +1,13 @@
+Release history for lariza
+
+next
+  [Changed]
+  - For the sake of consistency, $LARIZA_WEB_EXTENSIONS_DIR has been
+    removed.
+
+  [Added]
+  - Manpages are now available.
+
+v15.09 and earlier releases
+  - Sorry, the CHANGES file did not exist back then. Please refer to the
+    Git log.
