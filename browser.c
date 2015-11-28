@@ -79,7 +79,6 @@ static GHashTable *keywords = NULL;
 static gchar *search_text = NULL;
 static gboolean tabbed_automagic = TRUE;
 static gchar *user_agent = NULL;
-static gchar *web_extensions_dir = NULL;
 
 
 void
@@ -526,13 +525,6 @@ grab_environment_configuration(void)
     if (e != NULL)
         user_agent = g_strdup(e);
 
-    e = g_getenv(__NAME_UPPERCASE__"_WEB_EXTENSIONS_DIR");
-    if (e != NULL)
-        web_extensions_dir = g_strdup(e);
-    else
-        web_extensions_dir = g_build_filename(g_get_user_data_dir(), __NAME__,
-                                              "web_extensions", NULL);
-
     e = g_getenv(__NAME_UPPERCASE__"_ZOOM");
     if (e != NULL)
         global_zoom = atof(e);
@@ -920,6 +912,7 @@ trust_user_certs(WebKitWebContext *wc)
 int
 main(int argc, char **argv)
 {
+    gchar *c;
     int opt, i;
 
     gtk_init(&argc, &argv);
@@ -955,8 +948,13 @@ main(int argc, char **argv)
         embed = tabbed_launch();
 
     if (!cooperative_instances || cooperative_alone)
-        webkit_web_context_set_web_extensions_directory(webkit_web_context_get_default(),
-                                                        web_extensions_dir);
+    {
+        c = g_build_filename(g_get_user_data_dir(), __NAME__, "web_extensions",
+                             NULL);
+        webkit_web_context_set_web_extensions_directory(
+            webkit_web_context_get_default(), c
+        );
+    }
 
     if (optind >= argc)
         client_new(home_uri);
