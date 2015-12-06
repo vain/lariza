@@ -1,6 +1,10 @@
 Release history for lariza
 
 next
+  [Fixed]
+  - Issue #15: lariza no longer tries to create local file names with
+    directory separators in them when downloading files.
+
   [Changed]
   - For the sake of consistency, $LARIZA_WEB_EXTENSIONS_DIR has been
     removed.

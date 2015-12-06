@@ -394,11 +394,17 @@ download_handle_start(WebKitWebView *web_view, WebKitDownload *download,
 gboolean
 download_handle(WebKitDownload *download, gchar *suggested_filename, gpointer data)
 {
-    gchar *path, *path2 = NULL, *uri;
+    gchar *sug_clean, *path, *path2 = NULL, *uri;
     GtkToolItem *tb;
     int suffix = 1;
+    size_t i;
 
-    path = g_build_filename(download_dir, suggested_filename, NULL);
+    sug_clean = g_strdup(suggested_filename);
+    for (i = 0; i < strlen(sug_clean); i++)
+        if (sug_clean[i] == G_DIR_SEPARATOR)
+            sug_clean[i] = '_';
+
+    path = g_build_filename(download_dir, sug_clean, NULL);
     path2 = g_strdup(path);
     while (g_file_test(path2, G_FILE_TEST_EXISTS) && suffix < 1000)
     {
@@ -421,7 +427,7 @@ download_handle(WebKitDownload *download, gchar *suggested_filename, gpointer da
 
         tb = gtk_tool_button_new(NULL, NULL);
         gtk_tool_button_set_icon_name(GTK_TOOL_BUTTON(tb), "gtk-delete");
-        gtk_tool_button_set_label(GTK_TOOL_BUTTON(tb), suggested_filename);
+        gtk_tool_button_set_label(GTK_TOOL_BUTTON(tb), sug_clean);
         gtk_toolbar_insert(GTK_TOOLBAR(dm.toolbar), tb, 0);
         gtk_widget_show_all(dm.win);
 
@@ -433,6 +439,7 @@ download_handle(WebKitDownload *download, gchar *suggested_filename, gpointer da
                          G_CALLBACK(downloadmanager_cancel), download);
     }
 
+    g_free(sug_clean);
     g_free(path);
     g_free(path2);
 
