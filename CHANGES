@@ -2,6 +2,8 @@ Release history for lariza
 
 next
   [Fixed]
+  - Issue #14: "Keypad enter" now registers as "commit", i.e. "start
+    loading the URL" or "begin searching for search term".
   - Issue #15: lariza no longer tries to create local file names with
     directory separators in them when downloading files.
 

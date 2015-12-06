@@ -622,6 +622,7 @@ key_location(GtkWidget *widget, GdkEvent *event, gpointer data)
         {
             switch (((GdkEventKey *)event)->keyval)
             {
+                case GDK_KEY_KP_Enter:
                 case GDK_KEY_Return:
                     gtk_widget_grab_focus(c->web_view);
                     t = gtk_entry_get_text(GTK_ENTRY(c->location));
