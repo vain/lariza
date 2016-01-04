@@ -321,11 +321,19 @@ changed_load_progress(GObject *obj, GParamSpec *pspec, gpointer data)
 void
 changed_title(GObject *obj, GParamSpec *pspec, gpointer data)
 {
-    const gchar *t;
+    const gchar *t, *u;
     struct Client *c = (struct Client *)data;
 
+    u = webkit_web_view_get_uri(WEBKIT_WEB_VIEW(c->web_view));
     t = webkit_web_view_get_title(WEBKIT_WEB_VIEW(c->web_view));
-    gtk_window_set_title(GTK_WINDOW(c->win), (t == NULL ? __NAME__ : t));
+
+    u = u == NULL ? __NAME__ : u;
+    u = u[0] == 0 ? __NAME__ : u;
+
+    t = t == NULL ? u : t;
+    t = t[0] == 0 ? u : t;
+
+    gtk_window_set_title(GTK_WINDOW(c->win), t);
 }
 
 void

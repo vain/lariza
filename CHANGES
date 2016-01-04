@@ -6,6 +6,7 @@ next
     loading the URL" or "begin searching for search term".
   - Issue #15: lariza no longer tries to create local file names with
     directory separators in them when downloading files.
+  - lariza no longer sets the window title to an empty string.
 
   [Changed]
   - For the sake of consistency, $LARIZA_WEB_EXTENSIONS_DIR has been
