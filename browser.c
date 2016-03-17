@@ -715,6 +715,18 @@ key_web_view(GtkWidget *widget, GdkEvent *event, gpointer data)
                     return TRUE;
             }
         }
+        /* navigate backward (left hand) */
+        else if (((GdkEventKey *)event)->keyval == GDK_KEY_F2)
+        {
+            webkit_web_view_go_back(WEBKIT_WEB_VIEW(c->web_view));
+            return TRUE;
+        }
+        /* navigate forward (left hand) */
+        else if (((GdkEventKey *)event)->keyval == GDK_KEY_F3)
+        {
+            webkit_web_view_go_forward(WEBKIT_WEB_VIEW(c->web_view));
+            return TRUE;
+        }
         else if (((GdkEventKey *)event)->keyval == GDK_KEY_Escape)
         {
             webkit_web_view_stop_loading(WEBKIT_WEB_VIEW(c->web_view));
