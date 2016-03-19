@@ -1,5 +1,10 @@
 Release history for lariza
 
+next
+  [Added]
+  - New key bindings F2 and F3: Go backward and forward, just like the
+    existing mouse key binds do.
+
 v16.01  2016-01-05
   [Fixed]
   - Issue #14: "Keypad enter" now registers as "commit", i.e. "start
