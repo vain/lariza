@@ -204,7 +204,6 @@ client_new(const gchar *uri)
      * are a dirty workaround (kind of). */
     c->progress = gtk_level_bar_new();
     gtk_level_bar_set_value(GTK_LEVEL_BAR(c->progress), 1);
-    gtk_widget_set_size_request(c->progress, 100, -1);
 
     c->top_box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
     gtk_box_pack_start(GTK_BOX(c->top_box), c->location, TRUE, TRUE, 0);
