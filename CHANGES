@@ -1,6 +1,14 @@
 Release history for lariza
 
-next
+v16.06  2016-06-26
+  [Fixed]
+  - Gtk warnings.
+
+  [Changed]
+  - Except for the default window size, there are no hardcoded pixel
+    values anymore. Should make it a little easier to run lariza on
+    HiDPI screens. (Sorry, not tested, I don't have one.)
+
   [Added]
   - New key bindings F2 and F3: Go backward and forward, just like the
     existing mouse key binds do.
