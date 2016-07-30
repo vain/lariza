@@ -1,5 +1,9 @@
 Release history for lariza
 
+next
+  [Changed]
+  - Web extensions are now looked for in ~/.config/lariza/web_extensions.
+
 v16.06  2016-06-26
   [Fixed]
   - Gtk warnings.

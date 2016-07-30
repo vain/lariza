@@ -976,7 +976,7 @@ main(int argc, char **argv)
 
     if (!cooperative_instances || cooperative_alone)
     {
-        c = g_build_filename(g_get_user_data_dir(), __NAME__, "web_extensions",
+        c = g_build_filename(g_get_user_config_dir(), __NAME__, "web_extensions",
                              NULL);
         webkit_web_context_set_web_extensions_directory(
             webkit_web_context_get_default(), c
