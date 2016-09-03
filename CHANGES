@@ -1,6 +1,6 @@
 Release history for lariza
 
-next
+v16.09  2016-09-03
   [Changed]
   - Web extensions are now looked for in ~/.config/lariza/web_extensions.
 
