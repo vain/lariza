@@ -1,5 +1,15 @@
 Release history for lariza
 
+next
+  [Changed]
+  - We no longer explicitly set the X11 window's class and name. Let
+    GTK+ do this job. The actual class and name should be unchanged,
+    though (WM_CLASS(STRING) = "lariza", "Lariza").
+
+    This does not affect tabbed which is still run with "-n lariza".
+
+    This change fixes a GTK+ deprecation warning.
+
 v16.09  2016-09-03
   [Changed]
   - Web extensions are now looked for in ~/.config/lariza/web_extensions.

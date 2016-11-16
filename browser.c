@@ -142,10 +142,7 @@ client_new(const gchar *uri)
     }
 
     if (c->win == NULL)
-    {
         c->win = gtk_window_new(GTK_WINDOW_TOPLEVEL);
-        gtk_window_set_wmclass(GTK_WINDOW(c->win), __NAME__, __NAME_CAPITALIZED__);
-    }
 
     gtk_window_set_default_size(GTK_WINDOW(c->win), 800, 600);
 
