@@ -1,6 +1,10 @@
 Release history for lariza
 
 next
+  [Fixed]
+  - Lariza no longer reports download progress below 0% or above 100%.
+    (Workaround for what appears to be a WebKit2GTK+ bug.)
+
   [Changed]
   - We no longer explicitly set the X11 window's class and name. Let
     GTK+ do this job. The actual class and name should be unchanged,

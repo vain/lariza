@@ -279,7 +279,10 @@ changed_download_progress(GObject *obj, GParamSpec *pspec, gpointer data)
     const gchar *uri;
     gchar *t, *filename, *base;
 
-    p = webkit_download_get_estimated_progress(download) * 100;
+    p = webkit_download_get_estimated_progress(download);
+    p = p > 1 ? 1 : p;
+    p = p < 0 ? 0 : p;
+    p *= 100;
     resp = webkit_download_get_response(download);
     size_mb = webkit_uri_response_get_content_length(resp) / 1e6;
 
