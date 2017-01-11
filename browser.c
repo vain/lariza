@@ -31,6 +31,7 @@ static void download_handle_start(WebKitWebView *, WebKitDownload *, gpointer);
 static void downloadmanager_cancel(GtkToolButton *, gpointer data);
 static void downloadmanager_setup(void);
 static gchar *ensure_uri_scheme(const gchar *);
+static void external_handler_run(GtkAction *, gpointer);
 static void grab_environment_configuration(void);
 static void hover_web_view(WebKitWebView *, WebKitHitTestResult *, guint, gpointer);
 static gboolean key_downloadmanager(GtkWidget *, GdkEvent *, gpointer);
@@ -38,6 +39,8 @@ static gboolean key_location(GtkWidget *, GdkEvent *, gpointer);
 static gboolean key_web_view(GtkWidget *, GdkEvent *, gpointer);
 static void keywords_load(void);
 static gboolean keywords_try_search(WebKitWebView *, const gchar *);
+static gboolean menu_web_view(WebKitWebView *, WebKitContextMenu *, GdkEvent *,
+                              WebKitHitTestResult *, gpointer);
 static gboolean remote_msg(GIOChannel *, GIOCondition, gpointer);
 static void search(gpointer, gint);
 static Window tabbed_launch(void);
@@ -46,6 +49,7 @@ static void trust_user_certs(WebKitWebContext *);
 
 struct Client
 {
+    gchar *external_handler_uri;
     gchar *hover_uri;
     GtkWidget *location;
     GtkWidget *progress;
@@ -127,6 +131,7 @@ client_new(const gchar *uri)
         exit(EXIT_FAILURE);
     }
 
+    c->external_handler_uri = NULL;
     c->hover_uri = NULL;
     c->win = NULL;
     if (embed != 0)
@@ -161,6 +166,8 @@ client_new(const gchar *uri)
                      G_CALLBACK(changed_load_progress), c);
     g_signal_connect(G_OBJECT(c->web_view), "create",
                      G_CALLBACK(client_new_request), NULL);
+    g_signal_connect(G_OBJECT(c->web_view), "context-menu",
+                     G_CALLBACK(menu_web_view), c);
     g_signal_connect(G_OBJECT(c->web_view), "close",
                      G_CALLBACK(client_destroy_request), c);
     g_signal_connect(G_OBJECT(c->web_view), "decide-policy",
@@ -511,6 +518,28 @@ ensure_uri_scheme(const gchar *t)
 }
 
 void
+external_handler_run(GtkAction *action, gpointer data)
+{
+    struct Client *c = (struct Client *)data;
+    gchar *argv[] = { "lariza-external-handler", "-u", NULL, NULL };
+    GPid pid;
+    GError *err = NULL;
+
+    (void)action;
+
+    argv[2] = c->external_handler_uri;
+    if (!g_spawn_async(NULL, argv, NULL, G_SPAWN_SEARCH_PATH, NULL, NULL,
+                       &pid, &err))
+    {
+        fprintf(stderr, __NAME__": Could not launch key handler: %s\n",
+                err->message);
+        g_error_free(err);
+    }
+    else
+        g_spawn_close_pid(pid);
+}
+
+void
 grab_environment_configuration(void)
 {
     const gchar *e;
@@ -623,6 +652,13 @@ key_location(GtkWidget *widget, GdkEvent *event, gpointer data)
                 case GDK_KEY_c:  /* reload trusted certs (left hand) */
                     trust_user_certs(wc);
                     return TRUE;
+                case GDK_KEY_x:  /* launch external handler (left hand) */
+                    if (c->external_handler_uri != NULL)
+                        g_free(c->external_handler_uri);
+                    c->external_handler_uri = g_strdup(
+                        webkit_web_view_get_uri(WEBKIT_WEB_VIEW(c->web_view)));
+                    external_handler_run(NULL, c);
+                    return TRUE;
             }
         }
         else
@@ -711,6 +747,13 @@ key_web_view(GtkWidget *widget, GdkEvent *event, gpointer data)
                     return TRUE;
                 case GDK_KEY_c:  /* reload trusted certs (left hand) */
                     trust_user_certs(wc);
+                    return TRUE;
+                case GDK_KEY_x:  /* launch external handler (left hand) */
+                    if (c->external_handler_uri != NULL)
+                        g_free(c->external_handler_uri);
+                    c->external_handler_uri = g_strdup(
+                        webkit_web_view_get_uri(WEBKIT_WEB_VIEW(c->web_view)));
+                    external_handler_run(NULL, c);
                     return TRUE;
             }
         }
@@ -824,6 +867,43 @@ keywords_try_search(WebKitWebView *web_view, const gchar *t)
     g_strfreev(tokens);
 
     return ret;
+}
+
+gboolean
+menu_web_view(WebKitWebView *web_view, WebKitContextMenu *menu, GdkEvent *ev,
+              WebKitHitTestResult *ht, gpointer data)
+{
+    struct Client *c = (struct Client *)data;
+    GtkAction *action = NULL;
+    WebKitContextMenuItem *mi = NULL;
+    const gchar *uri = NULL;
+
+    (void)ev;
+
+    if (webkit_hit_test_result_context_is_link(ht))
+        uri = webkit_hit_test_result_get_link_uri(ht);
+    else if (webkit_hit_test_result_context_is_image(ht))
+        uri = webkit_hit_test_result_get_image_uri(ht);
+    else if (webkit_hit_test_result_context_is_media(ht))
+        uri = webkit_hit_test_result_get_media_uri(ht);
+
+    if (uri != NULL)
+    {
+        webkit_context_menu_append(menu, webkit_context_menu_item_new_separator());
+
+        if (c->external_handler_uri != NULL)
+            g_free(c->external_handler_uri);
+        c->external_handler_uri = g_strdup(uri);
+        action = gtk_action_new("external_handler", "Open with external handler",
+                                NULL, NULL);
+        g_signal_connect(G_OBJECT(action), "activate",
+                         G_CALLBACK(external_handler_run), data);
+        mi = webkit_context_menu_item_new(action);
+        webkit_context_menu_append(menu, mi);
+    }
+
+    /* FALSE = Show the menu. (TRUE = Don't ever show it.) */
+    return FALSE;
 }
 
 gboolean
