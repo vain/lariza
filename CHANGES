@@ -1,5 +1,10 @@
 Release history for lariza
 
+next
+  [Added]
+  - An external user-supplied program can be called for the current URI
+    or for hyperlinks/images/videos/audio files.
+
 v16.12  2016-12-24
   [Fixed]
   - Lariza no longer reports download progress below 0% or above 100%.
