@@ -1,6 +1,11 @@
 Release history for lariza
 
 next
+  [Changed]
+  - The "search prefix" has been changed from "/" to ":/". This means,
+    in order to search for text in a web page, you now have to enter
+    something like ":/your search term" into the input box.
+
   [Added]
   - An external user-supplied program can be called for the current URI
     or for hyperlinks/images/videos/audio files.

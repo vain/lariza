@@ -646,7 +646,7 @@ key_location(GtkWidget *widget, GdkEvent *event, gpointer data)
                                                         c->web_view));
                     return TRUE;
                 case GDK_KEY_k:  /* initiate search (BOTH hands) */
-                    gtk_entry_set_text(GTK_ENTRY(c->location), "/");
+                    gtk_entry_set_text(GTK_ENTRY(c->location), ":/");
                     gtk_editable_set_position(GTK_EDITABLE(c->location), -1);
                     return TRUE;
                 case GDK_KEY_c:  /* reload trusted certs (left hand) */
@@ -669,11 +669,11 @@ key_location(GtkWidget *widget, GdkEvent *event, gpointer data)
                 case GDK_KEY_Return:
                     gtk_widget_grab_focus(c->web_view);
                     t = gtk_entry_get_text(GTK_ENTRY(c->location));
-                    if (t != NULL && t[0] == '/')
+                    if (t != NULL && t[0] == ':' && t[1] == '/')
                     {
                         if (search_text != NULL)
                             g_free(search_text);
-                        search_text = g_strdup(t + 1);  /* XXX whacky */
+                        search_text = g_strdup(t + 2);  /* XXX whacky */
                         search(c, 0);
                     }
                     else if (!keywords_try_search(WEBKIT_WEB_VIEW(c->web_view), t))
@@ -742,7 +742,7 @@ key_web_view(GtkWidget *widget, GdkEvent *event, gpointer data)
                     return TRUE;
                 case GDK_KEY_k:  /* initiate search (BOTH hands) */
                     gtk_widget_grab_focus(c->location);
-                    gtk_entry_set_text(GTK_ENTRY(c->location), "/");
+                    gtk_entry_set_text(GTK_ENTRY(c->location), ":/");
                     gtk_editable_set_position(GTK_EDITABLE(c->location), -1);
                     return TRUE;
                 case GDK_KEY_c:  /* reload trusted certs (left hand) */
