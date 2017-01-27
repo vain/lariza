@@ -9,6 +9,8 @@ next
   [Added]
   - An external user-supplied program can be called for the current URI
     or for hyperlinks/images/videos/audio files.
+  - Lariza will now automatically add a "file://" prefix for local
+    files.
 
 v16.12  2016-12-24
   [Fixed]
