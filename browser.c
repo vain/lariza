@@ -125,16 +125,13 @@ client_new(const gchar *uri)
         return NULL;
     }
 
-    c = malloc(sizeof(struct Client));
+    c = calloc(1, sizeof(struct Client));
     if (!c)
     {
-        fprintf(stderr, __NAME__": fatal: malloc failed\n");
+        fprintf(stderr, __NAME__": fatal: calloc failed\n");
         exit(EXIT_FAILURE);
     }
 
-    c->external_handler_uri = NULL;
-    c->hover_uri = NULL;
-    c->win = NULL;
     if (embed != 0)
     {
         c->win = gtk_plug_new(embed);
