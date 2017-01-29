@@ -10,6 +10,9 @@ next
   - The "search prefix" has been changed from "/" to ":/". This means,
     in order to search for text in a web page, you now have to enter
     something like ":/your search term" into the input box.
+  - Lariza now uses WebKit's multi-process model. This means that (most)
+    tabs run as independent processes. If one tab crashes, it should not
+    affect the others.
 
   [Added]
   - An external user-supplied program can be called for the current URI

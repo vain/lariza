@@ -15,7 +15,7 @@
 
 static void client_destroy(GtkWidget *, gpointer);
 static gboolean client_destroy_request(WebKitWebView *, gpointer);
-static WebKitWebView *client_new(const gchar *, gboolean);
+static WebKitWebView *client_new(const gchar *, WebKitWebView *, gboolean);
 static WebKitWebView *client_new_request(WebKitWebView *, WebKitNavigationAction *,
                                          gpointer);
 static void cooperation_setup(void);
@@ -114,7 +114,7 @@ client_destroy_request(WebKitWebView *web_view, gpointer data)
 }
 
 WebKitWebView *
-client_new(const gchar *uri, gboolean show)
+client_new(const gchar *uri, WebKitWebView *related_wv, gboolean show)
 {
     struct Client *c;
     WebKitWebContext *wc;
@@ -154,7 +154,10 @@ client_new(const gchar *uri, gboolean show)
     g_signal_connect(G_OBJECT(c->win), "destroy", G_CALLBACK(client_destroy), c);
     gtk_window_set_title(GTK_WINDOW(c->win), __NAME__);
 
-    c->web_view = webkit_web_view_new();
+    if (related_wv == NULL)
+        c->web_view = webkit_web_view_new();
+    else
+        c->web_view = webkit_web_view_new_with_related_view(related_wv);
     wc = webkit_web_view_get_context(WEBKIT_WEB_VIEW(c->web_view));
 
     webkit_web_view_set_zoom_level(WEBKIT_WEB_VIEW(c->web_view), global_zoom);
@@ -241,7 +244,7 @@ WebKitWebView *
 client_new_request(WebKitWebView *web_view,
                    WebKitNavigationAction *navigation_action, gpointer data)
 {
-    return client_new(NULL, FALSE);
+    return client_new(NULL, web_view, FALSE);
 }
 
 void
@@ -635,7 +638,7 @@ key_common(GtkWidget *widget, GdkEvent *event, gpointer data)
                     return TRUE;
                 case GDK_KEY_e:  /* new tab (left hand) */
                     f = ensure_uri_scheme(home_uri);
-                    client_new(f, TRUE);
+                    client_new(f, NULL, TRUE);
                     g_free(f);
                     return TRUE;
                 case GDK_KEY_r:  /* reload (left hand) */
@@ -776,7 +779,7 @@ key_web_view(GtkWidget *widget, GdkEvent *event, gpointer data)
             case 2:
                 if (c->hover_uri != NULL)
                 {
-                    client_new(c->hover_uri, TRUE);
+                    client_new(c->hover_uri, NULL, TRUE);
                     return TRUE;
                 }
                 break;
@@ -909,7 +912,7 @@ remote_msg(GIOChannel *channel, GIOCondition condition, gpointer data)
     if (uri)
     {
         g_strstrip(uri);
-        client_new(uri, TRUE);
+        client_new(uri, NULL, TRUE);
         g_free(uri);
     }
     return TRUE;
@@ -1028,6 +1031,8 @@ main(int argc, char **argv)
     int opt, i;
 
     gtk_init(&argc, &argv);
+    webkit_web_context_set_process_model(webkit_web_context_get_default(),
+        WEBKIT_PROCESS_MODEL_MULTIPLE_SECONDARY_PROCESSES);
 
     grab_environment_configuration();
 
@@ -1069,11 +1074,11 @@ main(int argc, char **argv)
     }
 
     if (optind >= argc)
-        client_new(home_uri, TRUE);
+        client_new(home_uri, NULL, TRUE);
     else
     {
         for (i = optind; i < argc; i++)
-            client_new(argv[i], TRUE);
+            client_new(argv[i], NULL, TRUE);
     }
 
     if (!cooperative_instances || cooperative_alone)
