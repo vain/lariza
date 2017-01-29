@@ -1,6 +1,11 @@
 Release history for lariza
 
 next
+  [Fixed]
+  - As requested by WebKit's API documentation, we now wait for the
+    "ready-to-show" signal after a "create" signal. This fixes crashes
+    after you chose "Open link in new window" from a context menu.
+
   [Changed]
   - The "search prefix" has been changed from "/" to ":/". This means,
     in order to search for text in a web page, you now have to enter
