@@ -35,6 +35,7 @@ static gchar *ensure_uri_scheme(const gchar *);
 static void external_handler_run(GtkAction *, gpointer);
 static void grab_environment_configuration(void);
 static void hover_web_view(WebKitWebView *, WebKitHitTestResult *, guint, gpointer);
+static gboolean key_common(GtkWidget *, GdkEvent *, gpointer);
 static gboolean key_downloadmanager(GtkWidget *, GdkEvent *, gpointer);
 static gboolean key_location(GtkWidget *, GdkEvent *, gpointer);
 static gboolean key_web_view(GtkWidget *, GdkEvent *, gpointer);
@@ -612,106 +613,11 @@ hover_web_view(WebKitWebView *web_view, WebKitHitTestResult *ht, guint modifiers
 }
 
 gboolean
-key_downloadmanager(GtkWidget *widget, GdkEvent *event, gpointer data)
-{
-    if (event->type == GDK_KEY_PRESS)
-    {
-        if (((GdkEventKey *)event)->state & GDK_MOD1_MASK)
-        {
-            switch (((GdkEventKey *)event)->keyval)
-            {
-                case GDK_KEY_d:  /* close window (left hand) */
-                    gtk_widget_hide(dm.win);
-                    return TRUE;
-            }
-        }
-    }
-
-    return FALSE;
-}
-
-gboolean
-key_location(GtkWidget *widget, GdkEvent *event, gpointer data)
+key_common(GtkWidget *widget, GdkEvent *event, gpointer data)
 {
     struct Client *c = (struct Client *)data;
-    const gchar *t;
-    gchar *f;
     WebKitWebContext *wc = webkit_web_view_get_context(WEBKIT_WEB_VIEW(c->web_view));
-
-    if (event->type == GDK_KEY_PRESS)
-    {
-        if (((GdkEventKey *)event)->state & GDK_MOD1_MASK)
-        {
-            switch (((GdkEventKey *)event)->keyval)
-            {
-                case GDK_KEY_q:  /* close window (left hand) */
-                    gtk_widget_destroy(c->win);
-                    return TRUE;
-                case GDK_KEY_d:  /* download manager (left hand) */
-                    gtk_widget_show_all(dm.win);
-                    return TRUE;
-                case GDK_KEY_r:  /* reload (left hand) */
-                    webkit_web_view_reload_bypass_cache(WEBKIT_WEB_VIEW(
-                                                        c->web_view));
-                    return TRUE;
-                case GDK_KEY_k:  /* initiate search (BOTH hands) */
-                    gtk_entry_set_text(GTK_ENTRY(c->location), ":/");
-                    gtk_editable_set_position(GTK_EDITABLE(c->location), -1);
-                    return TRUE;
-                case GDK_KEY_c:  /* reload trusted certs (left hand) */
-                    trust_user_certs(wc);
-                    return TRUE;
-                case GDK_KEY_x:  /* launch external handler (left hand) */
-                    if (c->external_handler_uri != NULL)
-                        g_free(c->external_handler_uri);
-                    c->external_handler_uri = g_strdup(
-                        webkit_web_view_get_uri(WEBKIT_WEB_VIEW(c->web_view)));
-                    external_handler_run(NULL, c);
-                    return TRUE;
-            }
-        }
-        else
-        {
-            switch (((GdkEventKey *)event)->keyval)
-            {
-                case GDK_KEY_KP_Enter:
-                case GDK_KEY_Return:
-                    gtk_widget_grab_focus(c->web_view);
-                    t = gtk_entry_get_text(GTK_ENTRY(c->location));
-                    if (t != NULL && t[0] == ':' && t[1] == '/')
-                    {
-                        if (search_text != NULL)
-                            g_free(search_text);
-                        search_text = g_strdup(t + 2);  /* XXX whacky */
-                        search(c, 0);
-                    }
-                    else if (!keywords_try_search(WEBKIT_WEB_VIEW(c->web_view), t))
-                    {
-                        f = ensure_uri_scheme(t);
-                        webkit_web_view_load_uri(WEBKIT_WEB_VIEW(c->web_view), f);
-                        g_free(f);
-                    }
-                    return TRUE;
-                case GDK_KEY_Escape:
-                    t = webkit_web_view_get_uri(WEBKIT_WEB_VIEW(c->web_view));
-                    gtk_entry_set_text(GTK_ENTRY(c->location),
-                                       (t == NULL ? __NAME__ : t));
-                    return TRUE;
-            }
-        }
-    }
-
-    return FALSE;
-}
-
-gboolean
-key_web_view(GtkWidget *widget, GdkEvent *event, gpointer data)
-{
-    struct Client *c = (struct Client *)data;
-    gdouble dx, dy;
     gchar *f;
-    gfloat z;
-    WebKitWebContext *wc = webkit_web_view_get_context(WEBKIT_WEB_VIEW(c->web_view));
 
     if (event->type == GDK_KEY_PRESS)
     {
@@ -778,7 +684,86 @@ key_web_view(GtkWidget *widget, GdkEvent *event, gpointer data)
             webkit_web_view_go_forward(WEBKIT_WEB_VIEW(c->web_view));
             return TRUE;
         }
-        else if (((GdkEventKey *)event)->keyval == GDK_KEY_Escape)
+    }
+
+    return FALSE;
+}
+
+gboolean
+key_downloadmanager(GtkWidget *widget, GdkEvent *event, gpointer data)
+{
+    if (event->type == GDK_KEY_PRESS)
+    {
+        if (((GdkEventKey *)event)->state & GDK_MOD1_MASK)
+        {
+            switch (((GdkEventKey *)event)->keyval)
+            {
+                case GDK_KEY_d:  /* close window (left hand) */
+                    gtk_widget_hide(dm.win);
+                    return TRUE;
+            }
+        }
+    }
+
+    return FALSE;
+}
+
+gboolean
+key_location(GtkWidget *widget, GdkEvent *event, gpointer data)
+{
+    struct Client *c = (struct Client *)data;
+    const gchar *t;
+    gchar *f;
+
+    if (key_common(widget, event, data))
+        return TRUE;
+
+    if (event->type == GDK_KEY_PRESS)
+    {
+        switch (((GdkEventKey *)event)->keyval)
+        {
+            case GDK_KEY_KP_Enter:
+            case GDK_KEY_Return:
+                gtk_widget_grab_focus(c->web_view);
+                t = gtk_entry_get_text(GTK_ENTRY(c->location));
+                if (t != NULL && t[0] == ':' && t[1] == '/')
+                {
+                    if (search_text != NULL)
+                        g_free(search_text);
+                    search_text = g_strdup(t + 2);  /* XXX whacky */
+                    search(c, 0);
+                }
+                else if (!keywords_try_search(WEBKIT_WEB_VIEW(c->web_view), t))
+                {
+                    f = ensure_uri_scheme(t);
+                    webkit_web_view_load_uri(WEBKIT_WEB_VIEW(c->web_view), f);
+                    g_free(f);
+                }
+                return TRUE;
+            case GDK_KEY_Escape:
+                t = webkit_web_view_get_uri(WEBKIT_WEB_VIEW(c->web_view));
+                gtk_entry_set_text(GTK_ENTRY(c->location),
+                                   (t == NULL ? __NAME__ : t));
+                return TRUE;
+        }
+    }
+
+    return FALSE;
+}
+
+gboolean
+key_web_view(GtkWidget *widget, GdkEvent *event, gpointer data)
+{
+    struct Client *c = (struct Client *)data;
+    gdouble dx, dy;
+    gfloat z;
+
+    if (key_common(widget, event, data))
+        return TRUE;
+
+    if (event->type == GDK_KEY_PRESS)
+    {
+        if (((GdkEventKey *)event)->keyval == GDK_KEY_Escape)
         {
             webkit_web_view_stop_loading(WEBKIT_WEB_VIEW(c->web_view));
             gtk_level_bar_set_value(GTK_LEVEL_BAR(c->progress), 0);

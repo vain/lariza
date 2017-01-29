@@ -43,7 +43,9 @@ touched. Instead, the new file name will have a suffix such as \fB.1\fP,
 \fB.2\fP, \fB.3\fP, and so on.
 .\" --------------------------------------------------------------------
 .SH "HOTKEYS"
-.SS "Main window \(em WebKit viewport focused"
+.SS "Global hotkeys"
+These hotkeys work when either the location bar or the web view is being
+focused.
 .TP
 \fBMod1\fP + \fBx\fP
 Launch the external handler for the currently loaded URI.
@@ -82,6 +84,11 @@ Repeat the last search (backward).
 \fBMod1\fP + \fBc\fP
 Reload trusted certificates.
 .TP
+\fBF2\fP / \fBF3\fP
+Go backward and forward in current browser history.
+.P
+.SS "Main window \(em WebKit viewport focused"
+.TP
 \fBEscape\fP
 Stop loading.
 .TP
@@ -89,9 +96,7 @@ Stop loading.
 Open the link under the pointer in a new window.
 .TP
 \fBBackward\fP / \fBforward\fP (mouse keys 8 and 9)
-.TQ
-\fBF2\fP / \fBF3\fP
-Go backward and forward in current browser history.
+Same as \fBF2\fP and \fBF3\fP.
 .TP
 \fBMod1\fP + \fBScroll up\fP
 .TQ
@@ -110,29 +115,12 @@ Reset zoom to $\fBLARIZA_ZOOM\fP.
 .P
 .SS "Main window \(em location bar focused"
 .TP
-\fBMod1\fP + \fBx\fP
-Launch the external handler for the currently loaded URI.
-.TP
-\fBMod1\fP + \fBq\fP
-Close the current window.
-.TP
-\fBMod1\fP + \fBd\fP
-Open the download manager.
-.TP
-\fBMod1\fP + \fBr\fP
-Reload the current page.
-.TP
-\fBMod1\fP + \fBk\fP
-Reset the content of the location bar to \fB/\fP.
-.TP
-\fBMod1\fP + \fBc\fP
-Reload trusted certificates.
-.TP
 \fBEscape\fP
 Reset the content of the location bar to the current URI.
 .TP
 \fBReturn\fP
 Commit, i.e. begin searching, do a keyword based search or open the URI.
+.P
 .SS "Download manager"
 .TP
 \fBMod1\fP + \fBd\fP
