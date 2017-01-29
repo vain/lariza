@@ -15,7 +15,7 @@
 
 static void client_destroy(GtkWidget *, gpointer);
 static gboolean client_destroy_request(WebKitWebView *, gpointer);
-static WebKitWebView *client_new(const gchar *);
+static WebKitWebView *client_new(const gchar *, gboolean);
 static WebKitWebView *client_new_request(WebKitWebView *, WebKitNavigationAction *,
                                          gpointer);
 static void cooperation_setup(void);
@@ -44,6 +44,7 @@ static gboolean menu_web_view(WebKitWebView *, WebKitContextMenu *, GdkEvent *,
                               WebKitHitTestResult *, gpointer);
 static gboolean remote_msg(GIOChannel *, GIOCondition, gpointer);
 static void search(gpointer, gint);
+static void show_web_view(WebKitWebView *, gpointer);
 static Window tabbed_launch(void);
 static void trust_user_certs(WebKitWebContext *);
 
@@ -112,7 +113,7 @@ client_destroy_request(WebKitWebView *web_view, gpointer data)
 }
 
 WebKitWebView *
-client_new(const gchar *uri)
+client_new(const gchar *uri, gboolean show)
 {
     struct Client *c;
     WebKitWebContext *wc;
@@ -217,8 +218,11 @@ client_new(const gchar *uri)
 
     gtk_container_add(GTK_CONTAINER(c->win), c->vbox);
 
-    gtk_widget_grab_focus(c->web_view);
-    gtk_widget_show_all(c->win);
+    if (show)
+        show_web_view(NULL, c);
+    else
+        g_signal_connect(G_OBJECT(c->web_view), "ready-to-show",
+                         G_CALLBACK(show_web_view), c);
 
     if (uri != NULL)
     {
@@ -236,7 +240,7 @@ WebKitWebView *
 client_new_request(WebKitWebView *web_view,
                    WebKitNavigationAction *navigation_action, gpointer data)
 {
-    return client_new(NULL);
+    return client_new(NULL, FALSE);
 }
 
 void
@@ -725,7 +729,7 @@ key_web_view(GtkWidget *widget, GdkEvent *event, gpointer data)
                     return TRUE;
                 case GDK_KEY_e:  /* new tab (left hand) */
                     f = ensure_uri_scheme(home_uri);
-                    client_new(f);
+                    client_new(f, TRUE);
                     g_free(f);
                     return TRUE;
                 case GDK_KEY_r:  /* reload (left hand) */
@@ -787,7 +791,7 @@ key_web_view(GtkWidget *widget, GdkEvent *event, gpointer data)
             case 2:
                 if (c->hover_uri != NULL)
                 {
-                    client_new(c->hover_uri);
+                    client_new(c->hover_uri, TRUE);
                     return TRUE;
                 }
                 break;
@@ -920,7 +924,7 @@ remote_msg(GIOChannel *channel, GIOCondition condition, gpointer data)
     if (uri)
     {
         g_strstrip(uri);
-        client_new(uri);
+        client_new(uri, TRUE);
         g_free(uri);
     }
     return TRUE;
@@ -951,6 +955,17 @@ search(gpointer data, gint direction)
             webkit_find_controller_search_previous(fc);
             break;
     }
+}
+
+void
+show_web_view(WebKitWebView *web_view, gpointer data)
+{
+    struct Client *c = (struct Client *)data;
+
+    (void)web_view;
+
+    gtk_widget_grab_focus(c->web_view);
+    gtk_widget_show_all(c->win);
 }
 
 Window
@@ -1069,11 +1084,11 @@ main(int argc, char **argv)
     }
 
     if (optind >= argc)
-        client_new(home_uri);
+        client_new(home_uri, TRUE);
     else
     {
         for (i = optind; i < argc; i++)
-            client_new(argv[i]);
+            client_new(argv[i], TRUE);
     }
 
     if (!cooperative_instances || cooperative_alone)
