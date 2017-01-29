@@ -55,8 +55,6 @@ struct Client
     gchar *external_handler_uri;
     gchar *hover_uri;
     GtkWidget *location;
-    GtkWidget *progress;
-    GtkWidget *top_box;
     GtkWidget *vbox;
     GtkWidget *web_view;
     GtkWidget *win;
@@ -207,17 +205,8 @@ client_new(const gchar *uri, WebKitWebView *related_wv, gboolean show)
     g_signal_connect(G_OBJECT(c->location), "key-press-event",
                      G_CALLBACK(key_location), c);
 
-    /* XXX Progress bars don't work/look as intended anymore. Level bars
-     * are a dirty workaround (kind of). */
-    c->progress = gtk_level_bar_new();
-    gtk_level_bar_set_value(GTK_LEVEL_BAR(c->progress), 1);
-
-    c->top_box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
-    gtk_box_pack_start(GTK_BOX(c->top_box), c->location, TRUE, TRUE, 0);
-    gtk_box_pack_start(GTK_BOX(c->top_box), c->progress, FALSE, FALSE, 0);
-
     c->vbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
-    gtk_box_pack_start(GTK_BOX(c->vbox), c->top_box, FALSE, FALSE, 0);
+    gtk_box_pack_start(GTK_BOX(c->vbox), c->location, FALSE, FALSE, 0);
     gtk_box_pack_start(GTK_BOX(c->vbox), c->web_view, TRUE, TRUE, 0);
 
     gtk_container_add(GTK_CONTAINER(c->win), c->vbox);
@@ -327,7 +316,7 @@ changed_load_progress(GObject *obj, GParamSpec *pspec, gpointer data)
     gdouble p;
 
     p = webkit_web_view_get_estimated_load_progress(WEBKIT_WEB_VIEW(c->web_view));
-    gtk_level_bar_set_value(GTK_LEVEL_BAR(c->progress), p);
+    gtk_entry_set_progress_fraction(GTK_ENTRY(c->location), p);
 }
 
 void
@@ -769,7 +758,7 @@ key_web_view(GtkWidget *widget, GdkEvent *event, gpointer data)
         if (((GdkEventKey *)event)->keyval == GDK_KEY_Escape)
         {
             webkit_web_view_stop_loading(WEBKIT_WEB_VIEW(c->web_view));
-            gtk_level_bar_set_value(GTK_LEVEL_BAR(c->progress), 0);
+            gtk_entry_set_progress_fraction(GTK_ENTRY(c->location), 0);
         }
     }
     else if (event->type == GDK_BUTTON_PRESS)

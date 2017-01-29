@@ -13,6 +13,10 @@ next
   - Lariza now uses WebKit's multi-process model. This means that (most)
     tabs run as independent processes. If one tab crashes, it should not
     affect the others.
+  - The GtkLevelBar to show page loading progress has been removed.
+    Instead, we now use the progress bar which is already included in
+    GtkEntry (the input box). This is mostly a cosmetic change, but it
+    also eliminates some GTK warnings.
 
   [Added]
   - An external user-supplied program can be called for the current URI
