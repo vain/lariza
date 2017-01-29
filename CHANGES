@@ -11,6 +11,8 @@ next
     or for hyperlinks/images/videos/audio files.
   - Lariza will now automatically add a "file://" prefix for local
     files.
+  - Hotkeys have been unified. It is now largely irrelevant whether the
+    location bar or the web view has focus.
 
 v16.12  2016-12-24
   [Fixed]
