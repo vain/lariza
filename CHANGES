@@ -25,6 +25,7 @@ next
     files.
   - Hotkeys have been unified. It is now largely irrelevant whether the
     location bar or the web view has focus.
+  - Lariza can be instructed to write each visited URI to a file.
 
 v16.12  2016-12-24
   [Fixed]

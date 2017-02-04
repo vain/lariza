@@ -73,6 +73,11 @@ $\fBUID\fP is the id of your user. $\fBLARIZA_FIFO_SUFFIX\fP defaults to
 \fBmain\fP. If you change this variable, you can launch several
 independent cooperative instances of \fBlariza\fP.
 .TP
+\fBLARIZA_HISTORY_FILE\fP
+If set, \fBlariza\fP will write each visited URI to that file. This path
+can point to a named pipe, but be aware that the browser will block
+until a reader at the other end of the pipe has read all pending data.
+.TP
 \fBLARIZA_HOME_URI\fP
 This URI will be opened by pressing the appropriate hotkeys
 (\(lqhomepage\(rq or \(lqnew window\(rq) and if no URIs are specified on

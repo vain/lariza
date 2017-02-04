@@ -78,6 +78,7 @@ static gchar *download_dir = "/var/tmp";
 static Window embed = 0;
 static gchar *fifo_suffix = "main";
 static gdouble global_zoom = 1.0;
+static gchar *history_file = NULL;
 static gchar *home_uri = "about:blank";
 static gboolean initial_wc_setup_done = FALSE;
 static GHashTable *keywords = NULL;
@@ -342,9 +343,22 @@ changed_uri(GObject *obj, GParamSpec *pspec, gpointer data)
 {
     const gchar *t;
     struct Client *c = (struct Client *)data;
+    FILE *fp;
 
     t = webkit_web_view_get_uri(WEBKIT_WEB_VIEW(c->web_view));
     gtk_entry_set_text(GTK_ENTRY(c->location), (t == NULL ? __NAME__ : t));
+
+    if (t != NULL && history_file != NULL)
+    {
+        fp = fopen(history_file, "a");
+        if (fp != NULL)
+        {
+            fprintf(fp, "%s\n", t);
+            fclose(fp);
+        }
+        else
+            perror(__NAME__": Error opening history file");
+    }
 }
 
 gboolean
@@ -561,6 +575,10 @@ grab_environment_configuration(void)
     e = g_getenv(__NAME_UPPERCASE__"_FIFO_SUFFIX");
     if (e != NULL)
         fifo_suffix = g_strdup(e);
+
+    e = g_getenv(__NAME_UPPERCASE__"_HISTORY_FILE");
+    if (e != NULL)
+        history_file = g_strdup(e);
 
     e = g_getenv(__NAME_UPPERCASE__"_HOME_URI");
     if (e != NULL)
