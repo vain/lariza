@@ -1,5 +1,10 @@
 Release history for lariza
 
+next
+  [Fixed]
+  - Automatically adding the "file://" prefix didn't work (reliably) if
+    a message was sent to an already running instance.
+
 v17.02  2017-02-16
   [Fixed]
   - As requested by WebKit's API documentation, we now wait for the

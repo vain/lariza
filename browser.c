@@ -121,8 +121,10 @@ client_new(const gchar *uri, WebKitWebView *related_wv, gboolean show)
 
     if (uri != NULL && cooperative_instances && !cooperative_alone)
     {
-        write(cooperative_pipe_fp, uri, strlen(uri));
+        f = ensure_uri_scheme(uri);
+        write(cooperative_pipe_fp, f, strlen(f));
         write(cooperative_pipe_fp, "\n", 1);
+        g_free(f);
         return NULL;
     }
 
