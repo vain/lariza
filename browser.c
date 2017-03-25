@@ -24,7 +24,6 @@ static void changed_load_progress(GObject *, GParamSpec *, gpointer);
 static void changed_title(GObject *, GParamSpec *, gpointer);
 static void changed_uri(GObject *, GParamSpec *, gpointer);
 static gboolean crashed_web_view(WebKitWebView *, gpointer);
-static gboolean crashed_web_view_reload(gpointer);
 static gboolean decide_policy(WebKitWebView *, WebKitPolicyDecision *,
                               WebKitPolicyDecisionType, gpointer);
 static gboolean download_handle(WebKitDownload *, gchar *, gpointer);
@@ -73,7 +72,6 @@ static gint clients = 0;
 static gboolean cooperative_alone = TRUE;
 static gboolean cooperative_instances = TRUE;
 static int cooperative_pipe_fp = 0;
-static int crash_autoreload_delay = 2;
 static gchar *download_dir = "/var/tmp";
 static Window embed = 0;
 static gchar *fifo_suffix = "main";
@@ -348,42 +346,41 @@ changed_uri(GObject *obj, GParamSpec *pspec, gpointer data)
     FILE *fp;
 
     t = webkit_web_view_get_uri(WEBKIT_WEB_VIEW(c->web_view));
-    gtk_entry_set_text(GTK_ENTRY(c->location), (t == NULL ? __NAME__ : t));
 
-    if (t != NULL && history_file != NULL)
+    /* When a web process crashes, we get a "notify::uri" signal, but we
+     * can no longer read a meaningful URI. It's just an empty string
+     * now. Not updating the location bar in this scenario is important,
+     * because we would override the "WEB PROCESS CRASHED" message. */
+    if (t != NULL && strlen(t) > 0)
     {
-        fp = fopen(history_file, "a");
-        if (fp != NULL)
+        gtk_entry_set_text(GTK_ENTRY(c->location), t);
+
+        if (history_file != NULL)
         {
-            fprintf(fp, "%s\n", t);
-            fclose(fp);
+            fp = fopen(history_file, "a");
+            if (fp != NULL)
+            {
+                fprintf(fp, "%s\n", t);
+                fclose(fp);
+            }
+            else
+                perror(__NAME__": Error opening history file");
         }
-        else
-            perror(__NAME__": Error opening history file");
     }
 }
 
 gboolean
 crashed_web_view(WebKitWebView *web_view, gpointer data)
 {
-    fprintf(stderr, __NAME__": WebView crashed!\n");
-    if (crash_autoreload_delay >= 1)
-    {
-        fprintf(stderr, __NAME__": Reloading WebView in %d seconds.\n",
-                crash_autoreload_delay);
-        g_timeout_add_seconds(crash_autoreload_delay, crashed_web_view_reload,
-                              web_view);
-    }
+    gchar *t;
+    struct Client *c = (struct Client *)data;
+
+    t = g_strdup_printf("WEB PROCESS CRASHED: %s",
+                        webkit_web_view_get_uri(WEBKIT_WEB_VIEW(web_view)));
+    gtk_entry_set_text(GTK_ENTRY(c->location), t);
+    g_free(t);
 
     return TRUE;
-}
-
-gboolean
-crashed_web_view_reload(gpointer data)
-{
-    webkit_web_view_reload_bypass_cache(WEBKIT_WEB_VIEW(data));
-
-    return G_SOURCE_REMOVE;
 }
 
 gboolean
@@ -565,10 +562,6 @@ grab_environment_configuration(void)
     e = g_getenv(__NAME_UPPERCASE__"_ACCEPTED_LANGUAGE");
     if (e != NULL)
         accepted_language[0] = g_strdup(e);
-
-    e = g_getenv(__NAME_UPPERCASE__"_CRASH_AUTORELOAD_DELAY");
-    if (e != NULL)
-        crash_autoreload_delay = atoi(e);
 
     e = g_getenv(__NAME_UPPERCASE__"_DOWNLOAD_DIR");
     if (e != NULL)

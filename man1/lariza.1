@@ -39,17 +39,6 @@ about the following environment variables:
 In HTTP requests, WebKit sets the \(lqAccepted-Language\(rq header to
 this value. Defaults to \fBen-US\fP.
 .TP
-\fBLARIZA_CRASH_AUTORELOAD_DELAY\fP
-If/when the WebKit process crashes, \fBlariza\fP's main process will
-receive a signal and can act accordingly. The default value of this
-variable is \fB2\fP, which means that \fBlariza\fP will wait two seconds
-and then reload each window/tab.
-
-If you set $\fBLARIZA_CRASH_AUTORELOAD_DELAY\fP to zero or any negative
-value, then \fBlariza\fP will not automatically reload anything. Note,
-however, that you can still do this manually by pressing the
-\(lqreload\(rq hotkey for each window.
-.TP
 \fBLARIZA_DOWNLOAD_DIR\fP
 All downloads are automatically stored in this directory. If you want to
 stick to XDG directories, then you should configure your
