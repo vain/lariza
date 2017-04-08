@@ -16,7 +16,6 @@ Features:
     - Global content zoom
     - Cooperative instances using FIFOs
     - Certificate trust store
-    - Support for Flash and Java
     - Bundled web extensions:
         - Adblock
 
