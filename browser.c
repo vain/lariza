@@ -88,7 +88,7 @@ static gchar *user_agent = NULL;
 
 
 void
-client_destroy(GtkWidget *obj, gpointer data)
+client_destroy(GtkWidget *widget, gpointer data)
 {
     struct Client *c = (struct Client *)data;
 
