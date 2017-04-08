@@ -9,6 +9,9 @@ next
   - Autoreloading of crashed web processes has been removed. It doesn't
     make sense anymore since the switch to webkit's multi-process model.
     Instead, we now simply announce the crash in the location bar.
+  - Refuse to quit if there are active downloads. The user has to cancel
+    them explicitly. (To improve workflow a little bit, the download
+    manager now also knows a "Mod1 + q" hotkey.)
 
 v17.02  2017-02-16
   [Fixed]

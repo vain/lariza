@@ -29,6 +29,7 @@ static gboolean decide_policy(WebKitWebView *, WebKitPolicyDecision *,
 static gboolean download_handle(WebKitDownload *, gchar *, gpointer);
 static void download_handle_start(WebKitWebView *, WebKitDownload *, gpointer);
 static void downloadmanager_cancel(GtkToolButton *, gpointer data);
+static gboolean downloadmanager_delete(GtkWidget *, gpointer);
 static void downloadmanager_setup(void);
 static gchar *ensure_uri_scheme(const gchar *);
 static void external_handler_run(GtkAction *, gpointer);
@@ -42,6 +43,7 @@ static void keywords_load(void);
 static gboolean keywords_try_search(WebKitWebView *, const gchar *);
 static gboolean menu_web_view(WebKitWebView *, WebKitContextMenu *, GdkEvent *,
                               WebKitHitTestResult *, gpointer);
+static gboolean quit_if_nothing_active(void);
 static gboolean remote_msg(GIOChannel *, GIOCondition, gpointer);
 static void search(gpointer, gint);
 static void show_web_view(WebKitWebView *, gpointer);
@@ -68,7 +70,7 @@ struct DownloadManager
 
 
 static const gchar *accepted_language[2] = { NULL, NULL };
-static gint clients = 0;
+static gint clients = 0, downloads = 0;
 static gboolean cooperative_alone = TRUE;
 static gboolean cooperative_instances = TRUE;
 static int cooperative_pipe_fp = 0;
@@ -96,8 +98,7 @@ client_destroy(GtkWidget *obj, gpointer data)
     free(c);
     clients--;
 
-    if (clients == 0)
-        gtk_main_quit();
+    quit_if_nothing_active();
 }
 
 gboolean
@@ -406,6 +407,12 @@ decide_policy(WebKitWebView *web_view, WebKitPolicyDecision *decision,
 }
 
 void
+download_handle_finished(WebKitDownload *download, gpointer data)
+{
+    downloads--;
+}
+
+void
 download_handle_start(WebKitWebView *web_view, WebKitDownload *download,
                       gpointer data)
 {
@@ -456,6 +463,10 @@ download_handle(WebKitDownload *download, gchar *suggested_filename, gpointer da
         g_signal_connect(G_OBJECT(download), "notify::estimated-progress",
                          G_CALLBACK(changed_download_progress), tb);
 
+        downloads++;
+        g_signal_connect(G_OBJECT(download), "finished",
+                         G_CALLBACK(download_handle_finished), NULL);
+
         g_object_ref(download);
         g_signal_connect(G_OBJECT(tb), "clicked",
                          G_CALLBACK(downloadmanager_cancel), download);
@@ -480,6 +491,15 @@ downloadmanager_cancel(GtkToolButton *tb, gpointer data)
     gtk_widget_destroy(GTK_WIDGET(tb));
 }
 
+gboolean
+downloadmanager_delete(GtkWidget *obj, gpointer data)
+{
+    if (!quit_if_nothing_active())
+        gtk_widget_hide(dm.win);
+
+    return TRUE;
+}
+
 void
 downloadmanager_setup(void)
 {
@@ -488,7 +508,7 @@ downloadmanager_setup(void)
     gtk_window_set_default_size(GTK_WINDOW(dm.win), 500, 250);
     gtk_window_set_title(GTK_WINDOW(dm.win), __NAME__" - Download Manager");
     g_signal_connect(G_OBJECT(dm.win), "delete-event",
-                     G_CALLBACK(gtk_widget_hide_on_delete), NULL);
+                     G_CALLBACK(downloadmanager_delete), NULL);
     g_signal_connect(G_OBJECT(dm.win), "key-press-event",
                      G_CALLBACK(key_downloadmanager), NULL);
 
@@ -704,7 +724,8 @@ key_downloadmanager(GtkWidget *widget, GdkEvent *event, gpointer data)
             switch (((GdkEventKey *)event)->keyval)
             {
                 case GDK_KEY_d:  /* close window (left hand) */
-                    gtk_widget_hide(dm.win);
+                case GDK_KEY_q:
+                    downloadmanager_delete(dm.win, NULL);
                     return TRUE;
             }
         }
@@ -902,6 +923,23 @@ menu_web_view(WebKitWebView *web_view, WebKitContextMenu *menu, GdkEvent *ev,
     }
 
     /* FALSE = Show the menu. (TRUE = Don't ever show it.) */
+    return FALSE;
+}
+
+gboolean
+quit_if_nothing_active(void)
+{
+    if (clients == 0)
+    {
+        if (downloads == 0)
+        {
+            gtk_main_quit();
+            return TRUE;
+        }
+        else
+            gtk_widget_show_all(dm.win);
+    }
+
     return FALSE;
 }
 

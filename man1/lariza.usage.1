@@ -51,7 +51,9 @@ focused.
 Launch the external handler for the currently loaded URI.
 .TP
 \fBMod1\fP + \fBq\fP
-Close the current window.
+Close the current window. Quits the entire program if this was the last
+window and if there are no more active downloads (download manager is
+shown otherwise).
 .TP
 \fBMod1\fP + \fBw\fP
 Go to your \(lqhomepage\(rq. See the environment variable
@@ -124,7 +126,11 @@ Commit, i.e. begin searching, do a keyword based search or open the URI.
 .SS "Download manager"
 .TP
 \fBMod1\fP + \fBd\fP
-Close the download manager (downloads are not aborted).
+.TQ
+\fBMod1\fP + \fBq\fP
+Close the download manager. Active downloads are never aborted. However,
+if there are no more active downloads and no more browsing windows, then
+the entire program will quit.
 .\" --------------------------------------------------------------------
 .SH "KEYWORD BASED SEARCHING"
 In this file, you can configure keywords and the associated URIs:
