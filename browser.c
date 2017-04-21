@@ -75,6 +75,7 @@ static gboolean cooperative_alone = TRUE;
 static gboolean cooperative_instances = TRUE;
 static int cooperative_pipe_fp = 0;
 static gchar *download_dir = "/var/tmp";
+static gboolean enable_webgl = FALSE;
 static Window embed = 0;
 static gchar *fifo_suffix = "main";
 static gdouble global_zoom = 1.0;
@@ -202,6 +203,9 @@ client_new(const gchar *uri, WebKitWebView *related_wv, gboolean show)
     if (user_agent != NULL)
         g_object_set(G_OBJECT(webkit_web_view_get_settings(WEBKIT_WEB_VIEW(c->web_view))),
                      "user-agent", user_agent, NULL);
+
+    if (enable_webgl)
+        webkit_settings_set_enable_webgl(webkit_web_view_get_settings(WEBKIT_WEB_VIEW(c->web_view)), TRUE);
 
     c->location = gtk_entry_new();
     g_signal_connect(G_OBJECT(c->location), "key-press-event",
@@ -586,6 +590,10 @@ grab_environment_configuration(void)
     e = g_getenv(__NAME_UPPERCASE__"_DOWNLOAD_DIR");
     if (e != NULL)
         download_dir = g_strdup(e);
+
+    e = g_getenv(__NAME_UPPERCASE__"_ENABLE_EXPERIMENTAL_WEBGL");
+    if (e != NULL)
+        enable_webgl = TRUE;
 
     e = g_getenv(__NAME_UPPERCASE__"_FIFO_SUFFIX");
     if (e != NULL)
