@@ -13,6 +13,10 @@ next
     them explicitly. (To improve workflow a little bit, the download
     manager now also knows a "Mod1 + q" hotkey.)
 
+  [Added]
+  - WebGL can now be enabled by setting an environment variable. This is
+    an experimental feature, though.
+
 v17.02  2017-02-16
   [Fixed]
   - As requested by WebKit's API documentation, we now wait for the
