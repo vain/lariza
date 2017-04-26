@@ -858,7 +858,7 @@ key_web_view(GtkWidget *widget, GdkEvent *event, gpointer data)
             }
             else
             {
-                if (diffy > 30) /* reload  */
+                if (diffy > 30) /* reload */
                 {
                      webkit_web_view_reload_bypass_cache(WEBKIT_WEB_VIEW(c->web_view));
                      return TRUE;
