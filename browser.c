@@ -85,7 +85,6 @@ static gchar *home_uri = "about:blank";
 static gboolean initial_wc_setup_done = FALSE;
 static GHashTable *keywords = NULL;
 static gchar *search_text = NULL;
-
 static gboolean tabbed_automagic = TRUE;
 static gchar *user_agent = NULL;
 
