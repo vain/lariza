@@ -16,6 +16,7 @@ next
   [Added]
   - WebGL can now be enabled by setting an environment variable. This is
     an experimental feature, though.
+  - Ability to set the window size via environment variables.
 
 v17.02  2017-02-16
   [Fixed]

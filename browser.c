@@ -86,6 +86,8 @@ static GHashTable *keywords = NULL;
 static gchar *search_text = NULL;
 static gboolean tabbed_automagic = TRUE;
 static gchar *user_agent = NULL;
+static gint window_height = 800;
+static gint window_width = 600;
 
 
 void
@@ -150,7 +152,7 @@ client_new(const gchar *uri, WebKitWebView *related_wv, gboolean show)
     if (c->win == NULL)
         c->win = gtk_window_new(GTK_WINDOW_TOPLEVEL);
 
-    gtk_window_set_default_size(GTK_WINDOW(c->win), 800, 600);
+    gtk_window_set_default_size(GTK_WINDOW(c->win), window_width, window_height);
 
     g_signal_connect(G_OBJECT(c->win), "destroy", G_CALLBACK(client_destroy), c);
     gtk_window_set_title(GTK_WINDOW(c->win), __NAME__);
@@ -611,6 +613,14 @@ grab_environment_configuration(void)
     if (e != NULL)
         user_agent = g_strdup(e);
 
+    e = g_getenv(__NAME_UPPERCASE__"_WINDOW_HEIGHT");
+    if (e != NULL)
+        window_height = atoi(e);
+
+    e = g_getenv(__NAME_UPPERCASE__"_WINDOW_WIDTH");
+    if (e != NULL)
+        window_width = atoi(e);
+
     e = g_getenv(__NAME_UPPERCASE__"_ZOOM");
     if (e != NULL)
         global_zoom = atof(e);
@@ -1011,7 +1021,10 @@ tabbed_launch(void)
     GIOChannel *tabbed_stdout_channel;
     GError *err = NULL;
     gchar *output = NULL;
-    char *argv[] = { "tabbed", "-c", "-d", "-p", "s1", "-n", __NAME__, NULL };
+    char geom[8];
+    sprintf(geom, "%dx%d", window_width, window_height);
+    char *argv[] = { "tabbed", "-c", "-d", "-g", geom, "-p", "s1",
+                     "-n", __NAME__, NULL };
     Window plug_into;
 
     if (!g_spawn_async_with_pipes(NULL, argv, NULL, G_SPAWN_SEARCH_PATH, NULL,
