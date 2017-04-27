@@ -322,7 +322,8 @@ changed_load_progress(GObject *obj, GParamSpec *pspec, gpointer data)
     gdouble p;
 
     p = webkit_web_view_get_estimated_load_progress(WEBKIT_WEB_VIEW(c->web_view));
-    if (p == 1) p = 0;
+    if (p == 1)
+        p = 0;
     gtk_entry_set_progress_fraction(GTK_ENTRY(c->location), p);
 }
 
