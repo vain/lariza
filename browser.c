@@ -86,8 +86,8 @@ static GHashTable *keywords = NULL;
 static gchar *search_text = NULL;
 static gboolean tabbed_automagic = TRUE;
 static gchar *user_agent = NULL;
-static gint window_height = 800;
-static gint window_width = 600;
+static gint window_height = 600;
+static gint window_width = 800;
 
 
 void
