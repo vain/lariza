@@ -1,0 +1,41 @@
+                           =================
+                           Patches and forks
+                           =================
+
+
+What and where?
+---------------
+
+Here's a list of patches and forks written by you guys out there, sorted
+alphabetically by the author's name:
+
+    - https://github.com/onodera-punpun/lariza
+
+        Various patches, such as smooth scrolling and mouse gestures.
+
+There might be more, you should check GitHub's network graph:
+
+    https://github.com/vain/lariza/network
+
+
+Why?
+----
+
+This project has a rather strict policy when it comes to accepting
+patches. Feature requests often get turned down. I apologize for that.
+
+Let me quote http://suckless.org/hacking:
+
+    There are two types of patches: The ones that fit to your personal
+    taste and the ones you think should be included in mainline.
+
+Bug fixes and the like should be included in mainline and I'm very happy
+to receive pull requests for those types of things. Patches that fit
+your personal taste are a different story. They will probably not be
+accepted. Sorry.
+
+I recognize that you put effort into your work. Let's not waste it. If
+you wish your patches to be included in this list, just drop me a note
+or open a pull request.
+
+Thank you!

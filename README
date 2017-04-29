@@ -56,7 +56,8 @@ Background information
 
   lariza does what I need. It won't do other things. I'm open for pull
   requests but please don't be upset if I turn them down -- which might
-  happen if it's a feature that I simply don't need.
+  happen if it's a feature that I simply don't need. That being said,
+  you should have a look at the PATCHES file. :-)
 
   Especially, it's very likely that lariza will never have a "follow
   mode" like dwb, luakit or others have. I've used these browsers for
