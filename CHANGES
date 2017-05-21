@@ -1,6 +1,6 @@
 Release history for lariza
 
-next
+v17.05  2017-05-21
   [Fixed]
   - Automatically adding the "file://" prefix didn't work (reliably) if
     a message was sent to an already running instance.
