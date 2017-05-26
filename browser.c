@@ -86,7 +86,7 @@ static GHashTable *keywords = NULL;
 static gchar *search_text = NULL;
 static gboolean tabbed_automagic = TRUE;
 static gchar *user_agent = NULL;
-
+static gint px, py;
 
 void
 client_destroy(GtkWidget *widget, gpointer data)
@@ -179,6 +179,8 @@ client_new(const gchar *uri, WebKitWebView *related_wv, gboolean show)
     g_signal_connect(G_OBJECT(c->web_view), "key-press-event",
                      G_CALLBACK(key_web_view), c);
     g_signal_connect(G_OBJECT(c->web_view), "button-press-event",
+                     G_CALLBACK(key_web_view), c);
+    g_signal_connect(G_OBJECT(c->web_view), "button-release-event",
                      G_CALLBACK(key_web_view), c);
     g_signal_connect(G_OBJECT(c->web_view), "scroll-event",
                      G_CALLBACK(key_web_view), c);
@@ -792,6 +794,7 @@ key_web_view(GtkWidget *widget, GdkEvent *event, gpointer data)
 {
     struct Client *c = (struct Client *)data;
     gdouble dx, dy;
+    gint rx, ry;
     gfloat z;
 
     if (key_common(widget, event, data))
@@ -816,12 +819,60 @@ key_web_view(GtkWidget *widget, GdkEvent *event, gpointer data)
                     return TRUE;
                 }
                 break;
+            case 3:
+                gdk_window_get_device_position(((GdkEventButton *)event)->window,
+                                               ((GdkEventButton *)event)->device,
+                                               &px, &py, NULL);
+
+                if (((GdkEventButton *)event)->state & GDK_MOD1_MASK)
+                    return TRUE;
+                break;
             case 8:
                 webkit_web_view_go_back(WEBKIT_WEB_VIEW(c->web_view));
                 return TRUE;
             case 9:
                 webkit_web_view_go_forward(WEBKIT_WEB_VIEW(c->web_view));
                 return TRUE;
+        }
+    }
+    else if (event->type == GDK_BUTTON_RELEASE)
+    {
+        if ((((GdkEventButton *)event)->button) == 3)
+        {
+            gdk_window_get_device_position(((GdkEventButton *)event)->window,
+                                           ((GdkEventButton *)event)->device,
+                                           &rx, &ry, NULL);
+
+            int diffx = px - rx;
+            int diffy = py - ry;
+            if (abs(diffx) > abs(diffy))
+            {
+                if (diffx > 30) /* navigate backward */
+                {
+                    webkit_web_view_go_back(WEBKIT_WEB_VIEW(c->web_view));
+                    return TRUE;
+                }
+                else if (diffx < -30) /* navigate forward */
+                {
+                    webkit_web_view_go_forward(WEBKIT_WEB_VIEW(c->web_view));
+                    return TRUE;
+                }
+            }
+            else
+            {
+                if (diffy > 30) /* reload */
+                {
+                     webkit_web_view_reload_bypass_cache(WEBKIT_WEB_VIEW(c->web_view));
+                     return TRUE;
+                }
+                else if (diffy < -30) /* new tab */
+                {
+                     gchar *f = ensure_uri_scheme(home_uri);
+                     client_new(f, NULL, TRUE);
+                     g_free(f);
+                     return TRUE;
+                }
+            }
         }
     }
     else if (event->type == GDK_SCROLL)
