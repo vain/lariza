@@ -880,7 +880,7 @@ keywords_try_search(WebKitWebView *web_view, const gchar *t)
 {
     gboolean ret = FALSE;
     gchar **tokens = NULL;
-    gchar *val = NULL, *uri = NULL;
+    gchar *val = NULL, *escaped = NULL, *uri = NULL;
 
     tokens = g_strsplit(t, " ", 2);
     if (tokens[0] != NULL && tokens[1] != NULL)
@@ -888,9 +888,11 @@ keywords_try_search(WebKitWebView *web_view, const gchar *t)
         val = g_hash_table_lookup(keywords, tokens[0]);
         if (val != NULL)
         {
-            uri = g_strdup_printf((gchar *)val, tokens[1]);
+            escaped = g_uri_escape_string(tokens[1], NULL, TRUE);
+            uri = g_strdup_printf((gchar *)val, escaped);
             webkit_web_view_load_uri(web_view, uri);
             g_free(uri);
+            g_free(escaped);
             ret = TRUE;
         }
     }

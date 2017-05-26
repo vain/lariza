@@ -1,5 +1,10 @@
 Release history for lariza
 
+next
+  [Fixed]
+  - User input is now properly escaped when used for keyword based
+    searching (fixes #47).
+
 v17.05  2017-05-21
   [Fixed]
   - Automatically adding the "file://" prefix didn't work (reliably) if
