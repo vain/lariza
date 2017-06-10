@@ -76,6 +76,7 @@ static gboolean cooperative_instances = TRUE;
 static int cooperative_pipe_fp = 0;
 static gchar *download_dir = "/var/tmp";
 static gboolean enable_webgl = FALSE;
+static gboolean disable_javascript = FALSE;
 static Window embed = 0;
 static gchar *fifo_suffix = "main";
 static gdouble global_zoom = 1.0;
@@ -206,6 +207,9 @@ client_new(const gchar *uri, WebKitWebView *related_wv, gboolean show)
 
     if (enable_webgl)
         webkit_settings_set_enable_webgl(webkit_web_view_get_settings(WEBKIT_WEB_VIEW(c->web_view)), TRUE);
+  
+    if (disable_javascript)
+        webkit_settings_set_enable_javascript(webkit_web_view_get_settings(WEBKIT_WEB_VIEW(c->web_view)), FALSE);
 
     c->location = gtk_entry_new();
     g_signal_connect(G_OBJECT(c->location), "key-press-event",
@@ -596,6 +600,10 @@ grab_environment_configuration(void)
     e = g_getenv(__NAME_UPPERCASE__"_ENABLE_EXPERIMENTAL_WEBGL");
     if (e != NULL)
         enable_webgl = TRUE;
+  
+    e = g_getenv(__NAME_UPPERCASE__"_DISABLE_JAVASCRIPT");
+    if (e != NULL)
+        enable_javascript = TRUE;
 
     e = g_getenv(__NAME_UPPERCASE__"_FIFO_SUFFIX");
     if (e != NULL)
