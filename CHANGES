@@ -1,5 +1,11 @@
 Release history for lariza
 
+next
+  [LICENSING]
+  - The project has been relicensed under the MIT license (more
+    precisely called "Expat License", but everyone calls it "MIT
+    license" these days).
+
 v17.07  2017-07-02
   [Fixed]
   - User input is now properly escaped when used for keyword based
