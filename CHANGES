@@ -1,5 +1,10 @@
 Release history for lariza
 
+next
+  [Added]
+  - You can now set the following environment variable to have console
+    output printed to STDOUT: LARIZA_ENABLE_CONSOLE_TO_STDOUT.
+
 v17.10  2017-10-18
   [LICENSING]
   - The project has been relicensed under the MIT license (more
