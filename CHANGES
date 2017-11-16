@@ -1,6 +1,6 @@
 Release history for lariza
 
-next
+v17.11  2017-11-16
   [Added]
   - You can now set the following environment variable to have console
     output printed to STDOUT: LARIZA_ENABLE_CONSOLE_TO_STDOUT.
