@@ -32,7 +32,7 @@ static void downloadmanager_cancel(GtkToolButton *, gpointer data);
 static gboolean downloadmanager_delete(GtkWidget *, gpointer);
 static void downloadmanager_setup(void);
 static gchar *ensure_uri_scheme(const gchar *);
-static void external_handler_run(GtkAction *, gpointer);
+static void external_handler_run(gpointer);
 static void grab_environment_configuration(void);
 static void hover_web_view(WebKitWebView *, WebKitHitTestResult *, guint, gpointer);
 static gboolean key_common(GtkWidget *, GdkEvent *, gpointer);
@@ -563,14 +563,12 @@ ensure_uri_scheme(const gchar *t)
 }
 
 void
-external_handler_run(GtkAction *action, gpointer data)
+external_handler_run(gpointer data)
 {
     struct Client *c = (struct Client *)data;
     gchar *argv[] = { "lariza-external-handler", "-u", NULL, NULL };
     GPid pid;
     GError *err = NULL;
-
-    (void)action;
 
     argv[2] = c->external_handler_uri;
     if (!g_spawn_async(NULL, argv, NULL, G_SPAWN_SEARCH_PATH, NULL, NULL,
@@ -711,7 +709,7 @@ key_common(GtkWidget *widget, GdkEvent *event, gpointer data)
                         g_free(c->external_handler_uri);
                     c->external_handler_uri = g_strdup(
                         webkit_web_view_get_uri(WEBKIT_WEB_VIEW(c->web_view)));
-                    external_handler_run(NULL, c);
+                    external_handler_run(c);
                     return TRUE;
             }
         }
@@ -914,7 +912,7 @@ menu_web_view(WebKitWebView *web_view, WebKitContextMenu *menu, GdkEvent *ev,
               WebKitHitTestResult *ht, gpointer data)
 {
     struct Client *c = (struct Client *)data;
-    GtkAction *action = NULL;
+    GSimpleAction *action = NULL;
     WebKitContextMenuItem *mi = NULL;
     const gchar *uri = NULL;
 
@@ -934,12 +932,14 @@ menu_web_view(WebKitWebView *web_view, WebKitContextMenu *menu, GdkEvent *ev,
         if (c->external_handler_uri != NULL)
             g_free(c->external_handler_uri);
         c->external_handler_uri = g_strdup(uri);
-        action = gtk_action_new("external_handler", "Open with external handler",
-                                NULL, NULL);
-        g_signal_connect(G_OBJECT(action), "activate",
-                         G_CALLBACK(external_handler_run), data);
-        mi = webkit_context_menu_item_new(action);
+        action = g_simple_action_new("external_handler", NULL);
+        g_signal_connect_swapped(G_OBJECT(action), "activate",
+                                 G_CALLBACK(external_handler_run), data);
+        mi = webkit_context_menu_item_new_from_gaction(G_ACTION(action),
+                                                       "Open with external handler",
+                                                       NULL);
         webkit_context_menu_append(menu, mi);
+        g_object_unref(action);
     }
 
     /* FALSE = Show the menu. (TRUE = Don't ever show it.) */

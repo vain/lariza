@@ -1,5 +1,10 @@
 Release history for lariza
 
+next
+  [Fixed]
+  - Compilation warnings regarding deprecated API calls (GtkAction) have
+    been addressed. Thanks to @jun7 on GitHub!
+
 v17.11  2017-11-16
   [Added]
   - You can now set the following environment variable to have console
