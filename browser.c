@@ -28,7 +28,7 @@ static gboolean decide_policy(WebKitWebView *, WebKitPolicyDecision *,
                               WebKitPolicyDecisionType, gpointer);
 static gboolean download_handle(WebKitDownload *, gchar *, gpointer);
 static void download_handle_start(WebKitWebView *, WebKitDownload *, gpointer);
-static void downloadmanager_cancel(GtkToolButton *, gpointer data);
+static void downloadmanager_cancel(GtkToolButton *, gpointer);
 static gboolean downloadmanager_delete(GtkWidget *, gpointer);
 static void downloadmanager_setup(void);
 static gchar *ensure_uri_scheme(const gchar *);
