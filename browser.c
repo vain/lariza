@@ -775,7 +775,7 @@ key_location(GtkWidget *widget, GdkEvent *event, gpointer data)
                 {
                     if (search_text != NULL)
                         g_free(search_text);
-                    search_text = g_strdup(t + 2);  /* XXX whacky */
+                    search_text = g_strdup(t + 2);
                     search(c, 0);
                 }
                 else if (!keywords_try_search(WEBKIT_WEB_VIEW(c->web_view), t))
