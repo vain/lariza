@@ -1,6 +1,6 @@
 Release history for lariza
 
-next
+v18.01  2018-01-27
   [Fixed]
   - Compilation warnings regarding deprecated API calls (GtkAction) have
     been addressed. Thanks to @jun7 on GitHub!
