@@ -1,5 +1,11 @@
 Release history for lariza
 
+next
+  [Fixed]
+  - Accidentally opening a context menu and then issuing a middle click
+    to open a new tab no longer changes the location of the original tab
+    (fixes #56). (This only happened under certain circumstances.)
+
 v18.01  2018-01-27
   [Fixed]
   - Compilation warnings regarding deprecated API calls (GtkAction) have

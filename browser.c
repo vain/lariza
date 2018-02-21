@@ -179,7 +179,7 @@ client_new(const gchar *uri, WebKitWebView *related_wv, gboolean show)
                      G_CALLBACK(decide_policy), NULL);
     g_signal_connect(G_OBJECT(c->web_view), "key-press-event",
                      G_CALLBACK(key_web_view), c);
-    g_signal_connect(G_OBJECT(c->web_view), "button-press-event",
+    g_signal_connect(G_OBJECT(c->web_view), "button-release-event",
                      G_CALLBACK(key_web_view), c);
     g_signal_connect(G_OBJECT(c->web_view), "scroll-event",
                      G_CALLBACK(key_web_view), c);
@@ -814,7 +814,7 @@ key_web_view(GtkWidget *widget, GdkEvent *event, gpointer data)
             gtk_entry_set_progress_fraction(GTK_ENTRY(c->location), 0);
         }
     }
-    else if (event->type == GDK_BUTTON_PRESS)
+    else if (event->type == GDK_BUTTON_RELEASE)
     {
         switch (((GdkEventButton *)event)->button)
         {
