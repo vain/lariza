@@ -1,6 +1,6 @@
 Release history for lariza
 
-next
+v18.03  2018-03-17
   [Fixed]
   - Accidentally opening a context menu and then issuing a middle click
     to open a new tab no longer changes the location of the original tab
